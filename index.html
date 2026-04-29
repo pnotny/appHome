@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Domácí Finance</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <!-- Sidebar Navigation -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="app-icon">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+          <rect width="28" height="28" rx="8" fill="url(#grad)"/>
+          <path d="M8 18L12 10L16 15L19 12L22 18H8Z" fill="white" fill-opacity="0.9"/>
+          <defs>
+            <linearGradient id="grad" x1="0" y1="0" x2="28" y2="28">
+              <stop stop-color="#34C759"/>
+              <stop offset="1" stop-color="#30B94E"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="app-title">
+        <span class="app-name">Finance</span>
+        <span class="app-subtitle">Domácnost</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="dashboard">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+          </svg>
+        </span>
+        Přehled
+      </button>
+      <button class="nav-item" data-view="expenses">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </span>
+        Výdaje
+      </button>
+      <button class="nav-item" data-view="analytics">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </span>
+        Statistiky
+      </button>
+      <button class="nav-item" data-view="settings">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M16.24 7.76a6 6 0 0 1 0 8.49M4.93 4.93a10 10 0 0 0 0 14.14M7.76 7.76a6 6 0 0 0 0 8.49"/>
+          </svg>
+        </span>
+        Nastavení
+      </button>
+    </nav>
+
+    <div class="sidebar-persons">
+      <p class="sidebar-section-label">Osoby</p>
+      <div class="person-chip" id="person1-chip">
+        <div class="person-avatar" id="person1-avatar">A</div>
+        <span id="person1-sidebar-name">Osoba 1</span>
+      </div>
+      <div class="person-chip" id="person2-chip">
+        <div class="person-avatar person-avatar-2" id="person2-avatar">B</div>
+        <span id="person2-sidebar-name">Osoba 2</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <!-- ===== DASHBOARD VIEW ===== -->
+    <section class="view active" id="view-dashboard">
+      <header class="view-header">
+        <div>
+          <h1 class="view-title">Přehled</h1>
+          <p class="view-subtitle" id="month-label">Duben 2026</p>
+        </div>
+        <div class="header-actions">
+          <button class="btn-ghost" id="prev-month-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <button class="btn-ghost" id="next-month-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+          <button class="btn-primary" id="add-expense-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Přidat výdaj
+          </button>
+        </div>
+      </header>
+
+      <!-- Summary Cards -->
+      <div class="cards-grid">
+        <div class="card card-total">
+          <p class="card-label">Celkem tento měsíc</p>
+          <p class="card-value" id="total-amount">0 Kč</p>
+          <p class="card-trend" id="total-trend"></p>
+        </div>
+        <div class="card card-person1">
+          <p class="card-label"><span id="p1-label">Osoba 1</span></p>
+          <p class="card-value" id="p1-amount">0 Kč</p>
+          <p class="card-sub" id="p1-percent">0 %</p>
+        </div>
+        <div class="card card-person2">
+          <p class="card-label"><span id="p2-label">Osoba 2</span></p>
+          <p class="card-value" id="p2-amount">0 Kč</p>
+          <p class="card-sub" id="p2-percent">0 %</p>
+        </div>
+        <div class="card card-balance">
+          <p class="card-label">Vyrovnání</p>
+          <p class="card-value" id="balance-value">0 Kč</p>
+          <p class="card-sub" id="balance-direction"></p>
+        </div>
+      </div>
+
+      <!-- Split Bar -->
+      <div class="split-section">
+        <div class="split-header">
+          <span class="split-title">Rozdělení výdajů</span>
+          <span class="split-legend">
+            <span class="legend-dot dot-p1"></span><span id="split-p1-name">Osoba 1</span>
+            <span class="legend-dot dot-p2"></span><span id="split-p2-name">Osoba 2</span>
+          </span>
+        </div>
+        <div class="split-bar-wrap">
+          <div class="split-bar">
+            <div class="split-fill-p1" id="split-fill-p1" style="width:50%"></div>
+            <div class="split-fill-p2" id="split-fill-p2" style="width:50%"></div>
+          </div>
+          <div class="split-labels">
+            <span id="split-p1-pct">50 %</span>
+            <span id="split-p2-pct">50 %</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent Expenses -->
+      <div class="recent-section">
+        <div class="section-header">
+          <h2 class="section-title">Poslední výdaje</h2>
+          <button class="btn-link" data-view="expenses">Zobrazit vše</button>
+        </div>
+        <div class="expense-list" id="recent-expense-list">
+          <div class="empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <p>Zatím žádné výdaje</p>
+            <p class="empty-sub">Přidejte první výdaj kliknutím na tlačítko výše</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== EXPENSES VIEW ===== -->
+    <section class="view" id="view-expenses">
+      <header class="view-header">
+        <div>
+          <h1 class="view-title">Výdaje</h1>
+          <p class="view-subtitle" id="expenses-month-label">Duben 2026</p>
+        </div>
+        <div class="header-actions">
+          <div class="search-wrap">
+            <svg class="search-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" class="search-input" id="search-input" placeholder="Hledat výdaj…" />
+          </div>
+          <select class="select-filter" id="filter-person">
+            <option value="all">Všechny osoby</option>
+            <option value="0">Osoba 1</option>
+            <option value="1">Osoba 2</option>
+          </select>
+          <select class="select-filter" id="filter-category">
+            <option value="all">Všechny kategorie</option>
+          </select>
+          <button class="btn-primary" id="add-expense-btn-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Přidat
+          </button>
+        </div>
+      </header>
+
+      <div class="expense-list full-list" id="all-expense-list">
+        <div class="empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          <p>Žádné výdaje</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== ANALYTICS VIEW ===== -->
+    <section class="view" id="view-analytics">
+      <header class="view-header">
+        <div>
+          <h1 class="view-title">Statistiky</h1>
+          <p class="view-subtitle" id="analytics-month-label">Duben 2026</p>
+        </div>
+      </header>
+
+      <div class="analytics-grid">
+        <!-- Category Breakdown -->
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">Výdaje podle kategorie</h3>
+          <div class="category-bars" id="category-bars"></div>
+        </div>
+
+        <!-- Donut Chart -->
+        <div class="analytics-card">
+          <h3 class="analytics-card-title">Podíl kategorií</h3>
+          <div class="donut-wrap">
+            <svg class="donut-svg" id="donut-svg" viewBox="0 0 160 160"></svg>
+            <div class="donut-legend" id="donut-legend"></div>
+          </div>
+        </div>
+
+        <!-- Top Expenses -->
+        <div class="analytics-card analytics-card-wide">
+          <h3 class="analytics-card-title">Top 5 největších výdajů</h3>
+          <div class="top-list" id="top-expenses-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS VIEW ===== -->
+    <section class="view" id="view-settings">
+      <header class="view-header">
+        <div>
+          <h1 class="view-title">Nastavení</h1>
+          <p class="view-subtitle">Přizpůsobte aplikaci</p>
+        </div>
+      </header>
+
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3 class="settings-card-title">Profily osob</h3>
+          <div class="setting-row">
+            <div class="person-avatar" id="settings-p1-avatar">A</div>
+            <div class="setting-field">
+              <label class="setting-label">Jméno osoby 1</label>
+              <input type="text" class="setting-input" id="settings-p1-name" placeholder="Jméno…" />
+            </div>
+            <div class="setting-color-wrap">
+              <label class="setting-label">Barva</label>
+              <input type="color" class="setting-color" id="settings-p1-color" value="#34C759" />
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="person-avatar person-avatar-2" id="settings-p2-avatar">B</div>
+            <div class="setting-field">
+              <label class="setting-label">Jméno osoby 2</label>
+              <input type="text" class="setting-input" id="settings-p2-name" placeholder="Jméno…" />
+            </div>
+            <div class="setting-color-wrap">
+              <label class="setting-label">Barva</label>
+              <input type="color" class="setting-color" id="settings-p2-color" value="#007AFF" />
+            </div>
+          </div>
+          <button class="btn-primary" id="save-persons-btn">Uložit profily</button>
+        </div>
+
+        <div class="settings-card">
+          <h3 class="settings-card-title">Správa kategorií</h3>
+          <div class="categories-list" id="categories-list"></div>
+          <div class="add-category-row">
+            <input type="text" class="setting-input" id="new-category-name" placeholder="Nová kategorie…" />
+            <input type="text" class="setting-input emoji-input" id="new-category-emoji" placeholder="Emoji" maxlength="2" />
+            <button class="btn-secondary" id="add-category-btn">Přidat</button>
+          </div>
+        </div>
+
+        <div class="settings-card settings-card-danger">
+          <h3 class="settings-card-title">Správa dat</h3>
+          <div class="danger-actions">
+            <button class="btn-export" id="export-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportovat JSON
+            </button>
+            <button class="btn-danger" id="clear-data-btn">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              Smazat vše
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===== ADD/EDIT EXPENSE MODAL ===== -->
+  <div class="modal-overlay" id="modal-overlay">
+    <div class="modal" id="expense-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modal-title">Nový výdaj</h2>
+        <button class="modal-close" id="modal-close">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Název výdaje</label>
+          <input type="text" class="form-input" id="expense-name" placeholder="např. Nákup v Albert…" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Částka (Kč)</label>
+            <input type="number" class="form-input" id="expense-amount" placeholder="0" min="0" step="1" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Datum</label>
+            <input type="date" class="form-input" id="expense-date" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Kategorie</label>
+            <select class="form-input" id="expense-category"></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Zaplatil/a</label>
+            <div class="person-toggle">
+              <button class="person-toggle-btn active" id="toggle-p1" data-person="0">Osoba 1</button>
+              <button class="person-toggle-btn" id="toggle-p2" data-person="1">Osoba 2</button>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Poznámka (volitelné)</label>
+          <input type="text" class="form-input" id="expense-note" placeholder="Volitelná poznámka…" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="modal-cancel">Zrušit</button>
+        <button class="btn-primary" id="modal-save">Uložit výdaj</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== CONFIRM DIALOG ===== -->
+  <div class="modal-overlay" id="confirm-overlay">
+    <div class="modal confirm-modal">
+      <div class="modal-header">
+        <h2 class="modal-title" id="confirm-title">Smazat výdaj?</h2>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message">Tuto akci nelze vrátit zpět.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-ghost" id="confirm-cancel">Zrušit</button>
+        <button class="btn-danger" id="confirm-ok">Smazat</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
