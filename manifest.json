@@ -1,0 +1,21 @@
+{
+  "name": "Domácí Finance",
+  "short_name": "Finance",
+  "description": "Sledování výdajů domácnosti pro 2 osoby",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#007AFF",
+  "background_color": "#F2F2F7",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "cs"
+}

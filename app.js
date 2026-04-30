@@ -85,6 +85,7 @@ document.querySelectorAll('.btn-link[data-view]').forEach(btn => {
 
 function switchView(view) {
   document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
   if (view === 'dashboard') renderDashboard();
   if (view === 'expenses') renderExpenses();
@@ -164,6 +165,12 @@ document.getElementById('toggle-p1').addEventListener('click', () => { selectedP
 document.getElementById('toggle-p2').addEventListener('click', () => { selectedPerson = 1; updatePersonToggle(); });
 document.getElementById('add-expense-btn').addEventListener('click', () => openModal());
 document.getElementById('add-expense-btn-2').addEventListener('click', () => openModal());
+document.getElementById('fab-btn').addEventListener('click', () => openModal());
+
+// Bottom nav
+document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('modal-cancel').addEventListener('click', closeModal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
