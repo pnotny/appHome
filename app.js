@@ -1,13 +1,27 @@
+// ===== FIREBASE =====
+const firebaseConfig = {
+  apiKey: "AIzaSyAaqo82z702uWhi39MuxgREqW_m3tKmvpo",
+  authDomain: "costs-73862.firebaseapp.com",
+  projectId: "costs-73862",
+  storageBucket: "costs-73862.firebasestorage.app",
+  messagingSenderId: "275384916421",
+  appId: "1:275384916421:web:89aa70d99c73796cf053ac",
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+db.enablePersistence({ synchronizeTabs: true }).catch(() => {});
+
 // ===== STATE =====
 const DEFAULT_CATEGORIES = [
-  { id: 'food',      name: 'Jídlo',         emoji: '🛒' },
-  { id: 'housing',   name: 'Bydlení',       emoji: '🏠' },
-  { id: 'transport', name: 'Doprava',       emoji: '🚗' },
-  { id: 'health',    name: 'Zdraví',        emoji: '💊' },
-  { id: 'fun',       name: 'Zábava',        emoji: '🎬' },
-  { id: 'clothing',  name: 'Oblečení',      emoji: '👕' },
-  { id: 'education', name: 'Vzdělání',      emoji: '📚' },
-  { id: 'other',     name: 'Ostatní',       emoji: '📦' },
+  { id: 'food',      name: 'Jídlo',     emoji: '🛒' },
+  { id: 'housing',   name: 'Bydlení',   emoji: '🏠' },
+  { id: 'transport', name: 'Doprava',   emoji: '🚗' },
+  { id: 'health',    name: 'Zdraví',    emoji: '💊' },
+  { id: 'fun',       name: 'Zábava',    emoji: '🎬' },
+  { id: 'clothing',  name: 'Oblečení',  emoji: '👕' },
+  { id: 'education', name: 'Vzdělání',  emoji: '📚' },
+  { id: 'other',     name: 'Ostatní',   emoji: '📦' },
 ];
 
 const CAT_COLORS = [
@@ -15,27 +29,70 @@ const CAT_COLORS = [
   '#FF2D55','#5AC8FA','#FFCC00','#00C7BE','#30B0C7',
 ];
 
-let state = load();
+const savedNav = JSON.parse(localStorage.getItem('finance_nav') || '{}');
+let state = {
+  persons: [
+    { name: 'Adam', color: '#34C759' },
+    { name: 'Bára', color: '#007AFF' },
+  ],
+  categories: DEFAULT_CATEGORIES,
+  expenses: [],
+  currentMonth: savedNav.month ?? new Date().getMonth(),
+  currentYear:  savedNav.year  ?? new Date().getFullYear(),
+};
 
-function load() {
-  try {
-    const s = JSON.parse(localStorage.getItem('financeApp_v2') || 'null');
-    if (s) return s;
-  } catch(e) {}
-  return {
-    persons: [
-      { name: 'Adam', color: '#34C759' },
-      { name: 'Bára', color: '#007AFF' },
-    ],
-    categories: DEFAULT_CATEGORIES,
-    expenses: [],
-    currentMonth: new Date().getMonth(),
-    currentYear: new Date().getFullYear(),
-  };
+let householdId  = localStorage.getItem('finance_household');
+let unsubSettings = null;
+let unsubExpenses  = null;
+
+function saveNav() {
+  localStorage.setItem('finance_nav', JSON.stringify({
+    month: state.currentMonth,
+    year:  state.currentYear,
+  }));
 }
 
-function save() {
-  localStorage.setItem('financeApp_v2', JSON.stringify(state));
+// ===== FIRESTORE =====
+function householdRef() {
+  return db.collection('households').doc(householdId);
+}
+
+function subscribeToHousehold() {
+  if (unsubSettings) unsubSettings();
+  if (unsubExpenses)  unsubExpenses();
+
+  unsubSettings = householdRef().onSnapshot(doc => {
+    if (doc.exists) {
+      const d = doc.data();
+      if (d.persons)    state.persons    = d.persons;
+      if (d.categories) state.categories = d.categories;
+    } else {
+      householdRef().set({ persons: state.persons, categories: state.categories });
+    }
+    updateSidebarPersons();
+    renderSettings();
+    renderDashboard();
+  });
+
+  unsubExpenses = householdRef().collection('expenses').onSnapshot(snap => {
+    state.expenses = snap.docs.map(d => d.data());
+    renderAll();
+  });
+}
+
+async function syncExpense(expense) {
+  if (!householdId) return;
+  await householdRef().collection('expenses').doc(expense.id).set(expense);
+}
+
+async function removeExpense(id) {
+  if (!householdId) return;
+  await householdRef().collection('expenses').doc(id).delete();
+}
+
+async function syncSettings() {
+  if (!householdId) return;
+  await householdRef().set({ persons: state.persons, categories: state.categories }, { merge: true });
 }
 
 // ===== UTILS =====
@@ -57,29 +114,30 @@ function catById(id) {
 function getCatColor(idx) {
   return CAT_COLORS[idx % CAT_COLORS.length];
 }
-
 function expensesForMonth(m, y) {
   return state.expenses.filter(e => {
     const d = new Date(e.date);
     return d.getMonth() === m && d.getFullYear() === y;
   });
 }
-
 function showToast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2400);
 }
+function escHtml(str) {
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
 
 // ===== NAVIGATION =====
 document.querySelectorAll('.nav-item').forEach(btn => {
-  btn.addEventListener('click', () => {
-    const view = btn.dataset.view;
-    switchView(view);
-  });
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
 document.querySelectorAll('.btn-link[data-view]').forEach(btn => {
+  btn.addEventListener('click', () => switchView(btn.dataset.view));
+});
+document.querySelectorAll('.bottom-nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
 });
 
@@ -88,23 +146,21 @@ function switchView(view) {
   document.querySelectorAll('.bottom-nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + view));
   if (view === 'dashboard') renderDashboard();
-  if (view === 'expenses') renderExpenses();
+  if (view === 'expenses')  renderExpenses();
   if (view === 'analytics') renderAnalytics();
-  if (view === 'settings') renderSettings();
+  if (view === 'settings')  renderSettings();
 }
 
 // ===== MONTH NAV =====
 document.getElementById('prev-month-btn').addEventListener('click', () => {
   state.currentMonth--;
   if (state.currentMonth < 0) { state.currentMonth = 11; state.currentYear--; }
-  save();
-  renderDashboard();
+  saveNav(); renderDashboard();
 });
 document.getElementById('next-month-btn').addEventListener('click', () => {
   state.currentMonth++;
   if (state.currentMonth > 11) { state.currentMonth = 0; state.currentYear++; }
-  save();
-  renderDashboard();
+  saveNav(); renderDashboard();
 });
 
 // ===== MODAL =====
@@ -114,36 +170,32 @@ let selectedPerson = 0;
 function openModal(expenseId) {
   editingId = expenseId || null;
   selectedPerson = 0;
-  const modal = document.getElementById('expense-modal');
-  const overlay = document.getElementById('modal-overlay');
   document.getElementById('modal-title').textContent = editingId ? 'Upravit výdaj' : 'Nový výdaj';
-  document.getElementById('expense-name').value = '';
+  document.getElementById('expense-name').value   = '';
   document.getElementById('expense-amount').value = '';
-  document.getElementById('expense-date').value = todayISO();
-  document.getElementById('expense-note').value = '';
+  document.getElementById('expense-date').value   = todayISO();
+  document.getElementById('expense-note').value   = '';
 
-  // Populate category select
   const sel = document.getElementById('expense-category');
   sel.innerHTML = state.categories.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
 
-  // Person toggle labels
   document.getElementById('toggle-p1').textContent = state.persons[0].name;
   document.getElementById('toggle-p2').textContent = state.persons[1].name;
 
   if (editingId) {
     const exp = state.expenses.find(e => e.id === editingId);
     if (exp) {
-      document.getElementById('expense-name').value = exp.name;
+      document.getElementById('expense-name').value   = exp.name;
       document.getElementById('expense-amount').value = exp.amount;
-      document.getElementById('expense-date').value = exp.date;
-      document.getElementById('expense-note').value = exp.note || '';
-      sel.value = exp.categoryId;
+      document.getElementById('expense-date').value   = exp.date;
+      document.getElementById('expense-note').value   = exp.note || '';
+      sel.value      = exp.categoryId;
       selectedPerson = exp.personIdx;
     }
   }
 
   updatePersonToggle();
-  overlay.classList.add('open');
+  document.getElementById('modal-overlay').classList.add('open');
   document.getElementById('expense-name').focus();
 }
 
@@ -163,54 +215,41 @@ function updatePersonToggle() {
 
 document.getElementById('toggle-p1').addEventListener('click', () => { selectedPerson = 0; updatePersonToggle(); });
 document.getElementById('toggle-p2').addEventListener('click', () => { selectedPerson = 1; updatePersonToggle(); });
-document.getElementById('add-expense-btn').addEventListener('click', () => openModal());
+document.getElementById('add-expense-btn').addEventListener('click',   () => openModal());
 document.getElementById('add-expense-btn-2').addEventListener('click', () => openModal());
-document.getElementById('fab-btn').addEventListener('click', () => openModal());
-
-// Bottom nav
-document.querySelectorAll('.bottom-nav-item').forEach(btn => {
-  btn.addEventListener('click', () => switchView(btn.dataset.view));
-});
-document.getElementById('modal-close').addEventListener('click', closeModal);
-document.getElementById('modal-cancel').addEventListener('click', closeModal);
+document.getElementById('fab-btn').addEventListener('click',           () => openModal());
+document.getElementById('modal-close').addEventListener('click',   closeModal);
+document.getElementById('modal-cancel').addEventListener('click',  closeModal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
-document.getElementById('modal-save').addEventListener('click', () => {
-  const name = document.getElementById('expense-name').value.trim();
+document.getElementById('modal-save').addEventListener('click', async () => {
+  const name      = document.getElementById('expense-name').value.trim();
   const amountRaw = document.getElementById('expense-amount').value;
-  const date = document.getElementById('expense-date').value;
+  const date      = document.getElementById('expense-date').value;
   const categoryId = document.getElementById('expense-category').value;
-  const note = document.getElementById('expense-note').value.trim();
+  const note      = document.getElementById('expense-note').value.trim();
 
   if (!name) { document.getElementById('expense-name').focus(); return; }
   const amount = parseFloat(amountRaw);
   if (!amount || amount <= 0) { document.getElementById('expense-amount').focus(); return; }
   if (!date) return;
 
-  if (editingId) {
-    const exp = state.expenses.find(e => e.id === editingId);
-    if (exp) {
-      exp.name = name; exp.amount = amount; exp.date = date;
-      exp.categoryId = categoryId; exp.note = note; exp.personIdx = selectedPerson;
-    }
-    showToast('Výdaj upraven');
-  } else {
-    state.expenses.push({
-      id: Date.now().toString(),
-      name, amount, date, categoryId, note,
-      personIdx: selectedPerson,
-    });
-    showToast('Výdaj přidán');
-  }
-  save();
+  const expense = {
+    id: editingId || Date.now().toString(),
+    name, amount, date, categoryId, note,
+    personIdx: selectedPerson,
+  };
+
+  const wasEditing = !!editingId;
   closeModal();
-  renderAll();
+  await syncExpense(expense);
+  showToast(wasEditing ? 'Výdaj upraven' : 'Výdaj přidán');
 });
 
 // ===== CONFIRM DIALOG =====
 let confirmCallback = null;
 function openConfirm(title, message, cb) {
-  document.getElementById('confirm-title').textContent = title;
+  document.getElementById('confirm-title').textContent   = title;
   document.getElementById('confirm-message').textContent = message;
   document.getElementById('confirm-overlay').classList.add('open');
   confirmCallback = cb;
@@ -229,17 +268,16 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 
 // ===== RENDER EXPENSE ITEM =====
 function renderExpenseItem(exp) {
-  const cat = catById(exp.categoryId);
+  const cat    = catById(exp.categoryId);
   const person = state.persons[exp.personIdx] || state.persons[0];
-  const div = document.createElement('div');
+  const div    = document.createElement('div');
   div.className = 'expense-item';
   div.innerHTML = `
     <div class="expense-cat-icon">${cat.emoji}</div>
     <div class="expense-info">
       <div class="expense-name">${escHtml(exp.name)}</div>
       <div class="expense-meta">
-        <span class="expense-person-badge ${exp.personIdx === 0 ? 'badge-p1' : 'badge-p2'}"
-              style="background:${person.color}">${escHtml(person.name)}</span>
+        <span class="expense-person-badge" style="background:${person.color}">${escHtml(person.name)}</span>
         <span class="expense-meta-dot">·</span>
         <span>${cat.name}</span>
         <span class="expense-meta-dot">·</span>
@@ -261,20 +299,15 @@ function renderExpenseItem(exp) {
           <path d="M10 11v6"/><path d="M14 11v6"/>
         </svg>
       </button>
-    </div>
-  `;
+    </div>`;
   div.querySelector('.action-btn.edit').addEventListener('click', () => openModal(exp.id));
   div.querySelector('.action-btn.delete').addEventListener('click', () => {
-    openConfirm('Smazat výdaj?', `"${exp.name}" – ${fmt(exp.amount)}`, () => {
-      state.expenses = state.expenses.filter(e => e.id !== exp.id);
-      save(); renderAll(); showToast('Výdaj smazán');
+    openConfirm('Smazat výdaj?', `"${exp.name}" – ${fmt(exp.amount)}`, async () => {
+      await removeExpense(exp.id);
+      showToast('Výdaj smazán');
     });
   });
   return div;
-}
-
-function escHtml(str) {
-  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // ===== DASHBOARD =====
@@ -282,23 +315,22 @@ function renderDashboard() {
   const { currentMonth: m, currentYear: y, persons } = state;
   const expenses = expensesForMonth(m, y);
 
-  document.getElementById('month-label').textContent = monthLabel(m, y);
-  document.getElementById('expenses-month-label').textContent = monthLabel(m, y);
+  document.getElementById('month-label').textContent           = monthLabel(m, y);
+  document.getElementById('expenses-month-label').textContent  = monthLabel(m, y);
   document.getElementById('analytics-month-label').textContent = monthLabel(m, y);
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const p1 = expenses.filter(e => e.personIdx === 0).reduce((s, e) => s + e.amount, 0);
-  const p2 = expenses.filter(e => e.personIdx === 1).reduce((s, e) => s + e.amount, 0);
+  const p1    = expenses.filter(e => e.personIdx === 0).reduce((s, e) => s + e.amount, 0);
+  const p2    = expenses.filter(e => e.personIdx === 1).reduce((s, e) => s + e.amount, 0);
 
   document.getElementById('total-amount').textContent = fmt(total);
-  document.getElementById('p1-label').textContent = persons[0].name;
-  document.getElementById('p2-label').textContent = persons[1].name;
-  document.getElementById('p1-amount').textContent = fmt(p1);
-  document.getElementById('p2-amount').textContent = fmt(p2);
-  document.getElementById('p1-percent').textContent = total ? Math.round(p1/total*100) + ' %' : '0 %';
-  document.getElementById('p2-percent').textContent = total ? Math.round(p2/total*100) + ' %' : '0 %';
+  document.getElementById('p1-label').textContent     = persons[0].name;
+  document.getElementById('p2-label').textContent     = persons[1].name;
+  document.getElementById('p1-amount').textContent    = fmt(p1);
+  document.getElementById('p2-amount').textContent    = fmt(p2);
+  document.getElementById('p1-percent').textContent   = total ? Math.round(p1/total*100) + ' %' : '0 %';
+  document.getElementById('p2-percent').textContent   = total ? Math.round(p2/total*100) + ' %' : '0 %';
 
-  // Balance
   const diff = Math.abs(p1 - p2);
   document.getElementById('balance-value').textContent = fmt(diff / 2);
   if (diff < 1) {
@@ -309,20 +341,18 @@ function renderDashboard() {
     document.getElementById('balance-direction').textContent = `${persons[0].name} dluží ${persons[1].name}`;
   }
 
-  // Split bar
   const p1pct = total ? p1/total*100 : 50;
   const p2pct = total ? p2/total*100 : 50;
-  document.getElementById('split-fill-p1').style.width = p1pct + '%';
-  document.getElementById('split-fill-p2').style.width = p2pct + '%';
+  document.getElementById('split-fill-p1').style.width      = p1pct + '%';
+  document.getElementById('split-fill-p2').style.width      = p2pct + '%';
   document.getElementById('split-fill-p1').style.background = persons[0].color;
   document.getElementById('split-fill-p2').style.background = persons[1].color;
-  document.getElementById('split-p1-pct').textContent = Math.round(p1pct) + ' %';
-  document.getElementById('split-p2-pct').textContent = Math.round(p2pct) + ' %';
+  document.getElementById('split-p1-pct').textContent  = Math.round(p1pct) + ' %';
+  document.getElementById('split-p2-pct').textContent  = Math.round(p2pct) + ' %';
   document.getElementById('split-p1-name').textContent = persons[0].name;
   document.getElementById('split-p2-name').textContent = persons[1].name;
 
-  // Recent
-  const list = document.getElementById('recent-expense-list');
+  const list   = document.getElementById('recent-expense-list');
   list.innerHTML = '';
   const recent = [...expenses].sort((a,b) => b.date.localeCompare(a.date)).slice(0, 6);
   if (recent.length === 0) {
@@ -332,35 +362,31 @@ function renderDashboard() {
   } else {
     recent.forEach(e => list.appendChild(renderExpenseItem(e)));
   }
-
   updateSidebarPersons();
 }
 
 // ===== EXPENSES VIEW =====
 function renderExpenses() {
-  const { currentMonth: m, currentYear: y } = state;
-  let expenses = expensesForMonth(m, y);
+  let expenses = expensesForMonth(state.currentMonth, state.currentYear);
 
-  const search = document.getElementById('search-input').value.toLowerCase();
+  const search      = document.getElementById('search-input').value.toLowerCase();
   const personFilter = document.getElementById('filter-person').value;
-  const catFilter = document.getElementById('filter-category').value;
+  const catFilter    = document.getElementById('filter-category').value;
 
-  if (search) expenses = expenses.filter(e => e.name.toLowerCase().includes(search) || (e.note||'').toLowerCase().includes(search));
+  if (search)               expenses = expenses.filter(e => e.name.toLowerCase().includes(search) || (e.note||'').toLowerCase().includes(search));
   if (personFilter !== 'all') expenses = expenses.filter(e => e.personIdx === parseInt(personFilter));
-  if (catFilter !== 'all') expenses = expenses.filter(e => e.categoryId === catFilter);
+  if (catFilter !== 'all')    expenses = expenses.filter(e => e.categoryId === catFilter);
 
   const sorted = [...expenses].sort((a,b) => b.date.localeCompare(a.date));
-  const list = document.getElementById('all-expense-list');
+  const list   = document.getElementById('all-expense-list');
   list.innerHTML = '';
 
-  // Category filter options
-  const catSel = document.getElementById('filter-category');
+  const catSel  = document.getElementById('filter-category');
   const prevCat = catSel.value;
   catSel.innerHTML = `<option value="all">Všechny kategorie</option>` +
     state.categories.map(c => `<option value="${c.id}">${c.emoji} ${c.name}</option>`).join('');
   catSel.value = prevCat;
 
-  // Person filter labels
   const pSel = document.getElementById('filter-person');
   pSel.options[1].text = state.persons[0].name;
   pSel.options[2].text = state.persons[1].name;
@@ -373,35 +399,29 @@ function renderExpenses() {
 }
 
 ['search-input', 'filter-person', 'filter-category'].forEach(id => {
-  document.getElementById(id).addEventListener('input', renderExpenses);
+  document.getElementById(id).addEventListener('input',  renderExpenses);
   document.getElementById(id).addEventListener('change', renderExpenses);
 });
 
 // ===== ANALYTICS =====
 function renderAnalytics() {
-  const { currentMonth: m, currentYear: y } = state;
-  const expenses = expensesForMonth(m, y);
-
-  // Category breakdown
+  const expenses = expensesForMonth(state.currentMonth, state.currentYear);
   const catTotals = {};
-  expenses.forEach(e => {
-    catTotals[e.categoryId] = (catTotals[e.categoryId] || 0) + e.amount;
-  });
-  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  expenses.forEach(e => { catTotals[e.categoryId] = (catTotals[e.categoryId] || 0) + e.amount; });
+  const total  = expenses.reduce((s, e) => s + e.amount, 0);
   const sorted = Object.entries(catTotals).sort((a,b) => b[1]-a[1]);
 
-  // Bars
   const barsEl = document.getElementById('category-bars');
   barsEl.innerHTML = '';
   if (sorted.length === 0) {
     barsEl.innerHTML = '<p style="color:var(--text-3);font-size:14px">Žádná data pro tento měsíc</p>';
   } else {
     const max = sorted[0][1];
-    sorted.forEach(([catId, amt], idx) => {
-      const cat = catById(catId);
-      const pct = max ? (amt / max * 100) : 0;
+    sorted.forEach(([catId, amt]) => {
+      const cat   = catById(catId);
+      const pct   = max ? (amt / max * 100) : 0;
       const color = getCatColor(state.categories.findIndex(c => c.id === catId));
-      const row = document.createElement('div');
+      const row   = document.createElement('div');
       row.className = 'cat-bar-row';
       row.innerHTML = `
         <div class="cat-bar-header">
@@ -415,20 +435,18 @@ function renderAnalytics() {
     });
   }
 
-  // Donut
   renderDonut(sorted, total);
 
-  // Top 5
-  const topEl = document.getElementById('top-expenses-list');
+  const topEl  = document.getElementById('top-expenses-list');
   topEl.innerHTML = '';
-  const top5 = [...expenses].sort((a,b) => b.amount - a.amount).slice(0,5);
+  const top5 = [...expenses].sort((a,b) => b.amount - a.amount).slice(0, 5);
   if (top5.length === 0) {
     topEl.innerHTML = '<p style="color:var(--text-3);font-size:14px">Žádná data</p>';
   } else {
     top5.forEach((exp, i) => {
-      const cat = catById(exp.categoryId);
+      const cat    = catById(exp.categoryId);
       const person = state.persons[exp.personIdx] || state.persons[0];
-      const item = document.createElement('div');
+      const item   = document.createElement('div');
       item.className = 'top-item';
       item.innerHTML = `
         <div class="top-rank top-rank-${i+1}">${i+1}</div>
@@ -444,10 +462,9 @@ function renderAnalytics() {
 }
 
 function renderDonut(sorted, total) {
-  const svg = document.getElementById('donut-svg');
+  const svg    = document.getElementById('donut-svg');
   const legend = document.getElementById('donut-legend');
-  svg.innerHTML = '';
-  legend.innerHTML = '';
+  svg.innerHTML = legend.innerHTML = '';
 
   if (!total || sorted.length === 0) {
     svg.innerHTML = `<circle cx="80" cy="80" r="55" fill="none" stroke="#E5E5EA" stroke-width="20"/>`;
@@ -455,21 +472,19 @@ function renderDonut(sorted, total) {
   }
 
   const cx = 80, cy = 80, r = 55, sw = 20;
-  const circ = 2 * Math.PI * r;
   let offset = -Math.PI / 2;
 
-  sorted.slice(0, 8).forEach(([catId, amt], idx) => {
-    const cat = catById(catId);
+  sorted.slice(0, 8).forEach(([catId, amt]) => {
+    const cat   = catById(catId);
     const color = getCatColor(state.categories.findIndex(c => c.id === catId));
-    const pct = amt / total;
+    const pct   = amt / total;
     const angle = pct * 2 * Math.PI;
     const x1 = cx + r * Math.cos(offset);
     const y1 = cy + r * Math.sin(offset);
     const x2 = cx + r * Math.cos(offset + angle);
     const y2 = cy + r * Math.sin(offset + angle);
-    const large = angle > Math.PI ? 1 : 0;
     const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-    path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${large},1 ${x2},${y2} Z`);
+    path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 ${angle > Math.PI ? 1 : 0},1 ${x2},${y2} Z`);
     path.setAttribute('fill', color);
     path.setAttribute('opacity', '0.9');
     svg.appendChild(path);
@@ -483,40 +498,35 @@ function renderDonut(sorted, total) {
     legend.appendChild(item);
   });
 
-  // Center hole
   const hole = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   hole.setAttribute('cx', cx); hole.setAttribute('cy', cy);
-  hole.setAttribute('r', r - sw);
-  hole.setAttribute('fill', 'white');
+  hole.setAttribute('r', r - sw); hole.setAttribute('fill', 'white');
   svg.appendChild(hole);
 
-  // Center text
   const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   txt.setAttribute('x', cx); txt.setAttribute('y', cy - 4);
-  txt.setAttribute('text-anchor', 'middle');
-  txt.setAttribute('font-size', '10');
-  txt.setAttribute('font-weight', '700');
-  txt.setAttribute('fill', '#1C1C1E');
+  txt.setAttribute('text-anchor', 'middle'); txt.setAttribute('font-size', '10');
+  txt.setAttribute('font-weight', '700'); txt.setAttribute('fill', '#1C1C1E');
   txt.setAttribute('font-family', 'Inter, sans-serif');
-  txt.textContent = fmt(total).replace('CZK', 'Kč');
+  txt.textContent = fmt(total);
   svg.appendChild(txt);
+
   const sub = document.createElementNS('http://www.w3.org/2000/svg', 'text');
   sub.setAttribute('x', cx); sub.setAttribute('y', cy + 12);
-  sub.setAttribute('text-anchor', 'middle');
-  sub.setAttribute('font-size', '8');
-  sub.setAttribute('fill', '#636366');
-  sub.setAttribute('font-family', 'Inter, sans-serif');
+  sub.setAttribute('text-anchor', 'middle'); sub.setAttribute('font-size', '8');
+  sub.setAttribute('fill', '#636366'); sub.setAttribute('font-family', 'Inter, sans-serif');
   sub.textContent = 'celkem';
   svg.appendChild(sub);
 }
 
 // ===== SETTINGS =====
 function renderSettings() {
-  document.getElementById('settings-p1-name').value = state.persons[0].name;
-  document.getElementById('settings-p2-name').value = state.persons[1].name;
+  document.getElementById('settings-p1-name').value  = state.persons[0].name;
+  document.getElementById('settings-p2-name').value  = state.persons[1].name;
   document.getElementById('settings-p1-color').value = state.persons[0].color;
   document.getElementById('settings-p2-color').value = state.persons[1].color;
-
+  const codeEl = document.getElementById('household-code-display');
+  if (codeEl) codeEl.textContent = householdId || '';
   updateSettingsAvatars();
   renderCategoriesList();
 }
@@ -545,19 +555,18 @@ document.getElementById('settings-p2-color').addEventListener('input', e => {
   document.getElementById('settings-p2-avatar').style.background = e.target.value;
 });
 
-document.getElementById('save-persons-btn').addEventListener('click', () => {
+document.getElementById('save-persons-btn').addEventListener('click', async () => {
   const n1 = document.getElementById('settings-p1-name').value.trim();
   const n2 = document.getElementById('settings-p2-name').value.trim();
   if (!n1 || !n2) { showToast('Zadejte jména obou osob'); return; }
-  state.persons[0].name = n1;
-  state.persons[1].name = n2;
+  state.persons[0].name  = n1; state.persons[1].name  = n2;
   state.persons[0].color = document.getElementById('settings-p1-color').value;
   state.persons[1].color = document.getElementById('settings-p2-color').value;
-
   document.documentElement.style.setProperty('--p1-color', state.persons[0].color);
   document.documentElement.style.setProperty('--p2-color', state.persons[1].color);
-
-  save(); updateSidebarPersons(); showToast('Profily uloženy');
+  await syncSettings();
+  updateSidebarPersons();
+  showToast('Profily uloženy');
 });
 
 function renderCategoriesList() {
@@ -568,51 +577,59 @@ function renderCategoriesList() {
     item.className = 'category-item';
     item.innerHTML = `<span class="category-item-emoji">${cat.emoji}</span>
       <span class="category-item-name">${escHtml(cat.name)}</span>
-      <button class="category-delete-btn" data-id="${cat.id}" title="Smazat">
+      <button class="category-delete-btn" title="Smazat">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </button>`;
     item.querySelector('.category-delete-btn').addEventListener('click', () => {
       if (state.categories.length <= 1) { showToast('Nelze smazat poslední kategorii'); return; }
-      openConfirm('Smazat kategorii?', `"${cat.name}" bude odstraněna ze všech výdajů.`, () => {
+      openConfirm('Smazat kategorii?', `"${cat.name}" bude odstraněna.`, async () => {
         state.expenses.forEach(e => { if (e.categoryId === cat.id) e.categoryId = 'other'; });
         state.categories = state.categories.filter(c => c.id !== cat.id);
-        save(); renderCategoriesList(); showToast('Kategorie smazána');
+        await syncSettings();
+        renderCategoriesList();
+        showToast('Kategorie smazána');
       });
     });
     el.appendChild(item);
   });
 }
 
-document.getElementById('add-category-btn').addEventListener('click', () => {
-  const name = document.getElementById('new-category-name').value.trim();
+document.getElementById('add-category-btn').addEventListener('click', async () => {
+  const name  = document.getElementById('new-category-name').value.trim();
   const emoji = document.getElementById('new-category-emoji').value.trim() || '📦';
   if (!name) { document.getElementById('new-category-name').focus(); return; }
   const id = name.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
   state.categories.push({ id, name, emoji });
-  document.getElementById('new-category-name').value = '';
+  document.getElementById('new-category-name').value  = '';
   document.getElementById('new-category-emoji').value = '';
-  save(); renderCategoriesList(); showToast('Kategorie přidána');
+  await syncSettings();
+  renderCategoriesList();
+  showToast('Kategorie přidána');
 });
 
-// Export
 document.getElementById('export-btn').addEventListener('click', () => {
-  const data = JSON.stringify(state, null, 2);
-  const blob = new Blob([data], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
   a.href = url; a.download = 'finance-export.json';
   a.click(); URL.revokeObjectURL(url);
   showToast('Data exportována');
 });
 
-// Clear all
 document.getElementById('clear-data-btn').addEventListener('click', () => {
-  openConfirm('Smazat všechna data?', 'Tato akce je nevratná. Všechny výdaje budou smazány.', () => {
-    state.expenses = [];
-    save(); renderAll(); showToast('Všechna data smazána');
+  openConfirm('Smazat všechna data?', 'Tato akce je nevratná. Všechny výdaje budou smazány.', async () => {
+    const snap  = await householdRef().collection('expenses').get();
+    const batch = db.batch();
+    snap.docs.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+    showToast('Všechna data smazána');
   });
+});
+
+document.getElementById('copy-code-btn')?.addEventListener('click', () => {
+  navigator.clipboard.writeText(householdId || '').then(() => showToast('Kód zkopírován!'));
 });
 
 // ===== SIDEBAR PERSONS =====
@@ -627,14 +644,53 @@ function updateSidebarPersons() {
   document.documentElement.style.setProperty('--p2-color', state.persons[1].color);
 }
 
-// ===== RENDER ALL =====
 function renderAll() {
   renderDashboard();
   renderExpenses();
   renderAnalytics();
 }
 
+// ===== SETUP SCREEN =====
+function generateCode() {
+  const adj  = ['modra','zelena','slunecna','vesela','rychla','ticha','prima','fajn'];
+  const noun = ['rodina','domov','hnizdo','parta','dvojka','banda','tymek','squad'];
+  const a    = adj[Math.floor(Math.random() * adj.length)];
+  const n    = noun[Math.floor(Math.random() * noun.length)];
+  const num  = Math.floor(Math.random() * 9000) + 1000;
+  return `${a}-${n}-${num}`;
+}
+
+document.getElementById('join-btn').addEventListener('click', () => {
+  const raw   = document.getElementById('household-input').value.trim();
+  const input = raw.toLowerCase().replace(/\s+/g, '-');
+  if (!input || input.length < 3) {
+    document.getElementById('household-input').focus();
+    showToast('Zadejte kód (min. 3 znaky)');
+    return;
+  }
+  householdId = input;
+  localStorage.setItem('finance_household', householdId);
+  document.getElementById('setup-screen').style.display = 'none';
+  subscribeToHousehold();
+});
+
+document.getElementById('household-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('join-btn').click();
+});
+
+document.getElementById('generate-btn').addEventListener('click', () => {
+  const code = generateCode();
+  document.getElementById('household-input').value = code;
+  document.getElementById('generated-display').textContent = 'Kód vygenerován – sdílejte ho s přítelkyní';
+});
+
 // ===== INIT =====
 updateSidebarPersons();
 renderAll();
 renderSettings();
+
+if (!householdId) {
+  document.getElementById('setup-screen').style.display = 'flex';
+} else {
+  subscribeToHousehold();
+}

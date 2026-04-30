@@ -764,6 +764,79 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #C7C7CC; }
 
+/* ===== SETUP SCREEN ===== */
+.setup-screen {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+  padding: 20px;
+}
+.setup-card {
+  background: white;
+  border-radius: 24px;
+  padding: 40px 36px;
+  max-width: 420px;
+  width: 100%;
+  box-shadow: var(--shadow-md);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+.setup-logo { margin: 0 auto; border-radius: 16px; display: block; }
+.setup-title { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
+.setup-desc { font-size: 15px; color: var(--text-2); line-height: 1.5; }
+.setup-section { text-align: left; }
+.setup-label {
+  display: block; font-size: 12px; font-weight: 600;
+  color: var(--text-2); text-transform: uppercase;
+  letter-spacing: 0.3px; margin-bottom: 8px;
+}
+.setup-input {
+  width: 100%; padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  font-size: 16px; color: var(--text);
+  font-family: var(--font); outline: none;
+  text-align: center; letter-spacing: 0.5px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.setup-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,122,255,0.12); }
+.setup-btn { width: 100%; justify-content: center; padding: 13px; font-size: 16px; }
+.setup-divider {
+  display: flex; align-items: center; gap: 12px;
+  color: var(--text-3); font-size: 13px;
+}
+.setup-divider::before, .setup-divider::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+.setup-generated {
+  font-size: 13px; color: var(--accent);
+  font-weight: 500; margin-top: 8px; min-height: 18px;
+}
+
+/* ===== HOUSEHOLD CODE (settings) ===== */
+.settings-card-household { grid-column: 1 / -1; }
+.settings-household-desc { font-size: 14px; color: var(--text-2); line-height: 1.5; }
+.household-code-row { display: flex; align-items: center; gap: 12px; }
+.household-code {
+  flex: 1;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  font-size: 15px;
+  font-family: 'SF Mono', 'Fira Code', monospace;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+}
+
 /* ===== BOTTOM NAV (mobile) ===== */
 .bottom-nav {
   display: none;

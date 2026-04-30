@@ -19,8 +19,27 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Finance" />
   <link rel="apple-touch-icon" href="icon.svg" />
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+
+  <!-- Setup Screen -->
+  <div class="setup-screen" id="setup-screen" style="display:none">
+    <div class="setup-card">
+      <img src="icon.svg" width="72" height="72" class="setup-logo" alt="Finance" />
+      <h1 class="setup-title">Domácí Finance</h1>
+      <p class="setup-desc">Zadejte společný kód domácnosti. Oba musíte použít <strong>stejný kód</strong>, abyste viděli sdílená data.</p>
+      <div class="setup-section">
+        <label class="setup-label">Kód domácnosti</label>
+        <input type="text" class="setup-input" id="household-input" placeholder="např. adam-bara-2026" autocomplete="off" />
+        <p class="setup-generated" id="generated-display"></p>
+      </div>
+      <button class="btn-primary setup-btn" id="join-btn">Připojit se</button>
+      <div class="setup-divider"><span>nebo</span></div>
+      <button class="btn-ghost setup-btn" id="generate-btn">Vygenerovat kód automaticky</button>
+    </div>
+  </div>
 
   <!-- Sidebar Navigation -->
   <aside class="sidebar">
@@ -291,6 +310,15 @@
             <input type="text" class="setting-input" id="new-category-name" placeholder="Nová kategorie…" />
             <input type="text" class="setting-input emoji-input" id="new-category-emoji" placeholder="Emoji" maxlength="2" />
             <button class="btn-secondary" id="add-category-btn">Přidat</button>
+          </div>
+        </div>
+
+        <div class="settings-card settings-card-household">
+          <h3 class="settings-card-title">Kód domácnosti</h3>
+          <p class="settings-household-desc">Sdílejte tento kód s přítelkyní – zadá ho při prvním spuštění aplikace a uvidí stejná data.</p>
+          <div class="household-code-row">
+            <code class="household-code" id="household-code-display"></code>
+            <button class="btn-secondary" id="copy-code-btn">Kopírovat</button>
           </div>
         </div>
 
