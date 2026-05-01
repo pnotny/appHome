@@ -381,6 +381,42 @@
           <label class="form-label">Poznámka (volitelné)</label>
           <input type="text" class="form-input" id="expense-note" placeholder="Volitelná poznámka…" />
         </div>
+        <!-- Split toggle -->
+        <div class="form-group">
+          <label class="form-label">Sdílený výdaj</label>
+          <div class="split-toggle-row">
+            <label class="toggle-switch">
+              <input type="checkbox" id="expense-split" />
+              <span class="toggle-slider"></span>
+            </label>
+            <span class="split-toggle-label" id="split-toggle-label">Platí pouze jedna osoba</span>
+          </div>
+        </div>
+        <!-- Ratio selector (visible only when split on) -->
+        <div class="form-group" id="split-ratio-group" style="display:none">
+          <label class="form-label">
+            Poměr: <span class="modal-p0-name">Adam</span> / <span class="modal-p1-name">Bára</span>
+          </label>
+          <div class="ratio-presets">
+            <button type="button" class="ratio-btn active" data-ratio="50">50 / 50</button>
+            <button type="button" class="ratio-btn" data-ratio="60">60 / 40</button>
+            <button type="button" class="ratio-btn" data-ratio="70">70 / 30</button>
+            <button type="button" class="ratio-btn" data-ratio="33">33 / 67</button>
+            <button type="button" class="ratio-btn" data-ratio="custom">Vlastní</button>
+          </div>
+          <div class="ratio-slider-wrap" id="ratio-slider-wrap" style="display:none">
+            <div class="ratio-names">
+              <span class="modal-p0-name">Adam</span>
+              <span class="modal-p1-name">Bára</span>
+            </div>
+            <input type="range" class="ratio-slider" id="ratio-slider" min="0" max="100" value="50" step="1" />
+            <div class="ratio-pcts">
+              <span id="ratio-p0-pct">50 %</span>
+              <span id="ratio-p1-pct">50 %</span>
+            </div>
+          </div>
+          <div class="ratio-preview" id="ratio-preview">Zadejte částku pro náhled</div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn-ghost" id="modal-cancel">Zrušit</button>

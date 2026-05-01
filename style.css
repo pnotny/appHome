@@ -764,6 +764,80 @@ body {
 ::-webkit-scrollbar-thumb { background: var(--bg-2); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: #C7C7CC; }
 
+/* ===== SPLIT TOGGLE ===== */
+.split-toggle-row { display: flex; align-items: center; gap: 12px; }
+.split-toggle-label { font-size: 14px; color: var(--text-2); }
+.toggle-switch {
+  position: relative; width: 44px; height: 26px; flex-shrink: 0; display: inline-block;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.toggle-slider {
+  position: absolute; inset: 0; background: #D1D1D6;
+  border-radius: 13px; cursor: pointer; transition: background 0.2s;
+}
+.toggle-slider::after {
+  content: ''; position: absolute;
+  left: 3px; top: 3px; width: 20px; height: 20px;
+  border-radius: 50%; background: white;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  transition: transform 0.2s;
+}
+.toggle-switch input:checked + .toggle-slider { background: var(--accent-green); }
+.toggle-switch input:checked + .toggle-slider::after { transform: translateX(18px); }
+
+/* ===== RATIO SELECTOR ===== */
+.ratio-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.ratio-btn {
+  padding: 5px 13px; border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: transparent; font-size: 13px; font-weight: 600;
+  color: var(--text-2); cursor: pointer; font-family: var(--font);
+  transition: all 0.15s;
+}
+.ratio-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ratio-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
+
+.ratio-slider-wrap {
+  background: var(--bg); border-radius: 10px; padding: 12px; margin-bottom: 8px;
+}
+.ratio-names { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--text-2); margin-bottom: 8px; }
+.ratio-slider {
+  width: 100%; -webkit-appearance: none; appearance: none;
+  height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+  background: linear-gradient(to right, var(--p1-color) 50%, var(--p2-color) 50%);
+}
+.ratio-slider::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px;
+  border-radius: 50%; background: white;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.25); cursor: pointer;
+}
+.ratio-slider::-moz-range-thumb {
+  width: 22px; height: 22px; border-radius: 50%; background: white;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.25); cursor: pointer; border: none;
+}
+.ratio-pcts { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; margin-top: 6px; }
+#ratio-p0-pct { color: var(--p1-color); }
+#ratio-p1-pct { color: var(--p2-color); }
+
+.ratio-preview {
+  font-size: 13px; color: var(--text-2);
+  background: var(--bg); border-radius: 8px;
+  padding: 8px 12px; text-align: center;
+  border: 1px solid var(--border);
+}
+
+/* ===== SPLIT CHIP (on expense items) ===== */
+.split-chip {
+  font-size: 10px; font-weight: 700;
+  background: rgba(52,199,89,0.12); color: var(--accent-green);
+  padding: 1px 6px; border-radius: 5px;
+  letter-spacing: 0.2px;
+}
+
+/* ===== MODAL P-NAMES ===== */
+.modal-p0-name { color: var(--p1-color); font-weight: 700; }
+.modal-p1-name { color: var(--p2-color); font-weight: 700; }
+
 /* ===== SETUP SCREEN ===== */
 .setup-screen {
   position: fixed; inset: 0;

@@ -130,6 +130,37 @@ function escHtml(str) {
   return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+// ===== SPLIT HELPERS =====
+function getPersonShares(exp) {
+  const amount = exp.amount || 0;
+  const paidBy = exp.paidBy ?? exp.personIdx ?? 0;
+  if (!exp.split) {
+    return {
+      p0share: paidBy === 0 ? amount : 0,
+      p1share: paidBy === 1 ? amount : 0,
+      p0paid:  paidBy === 0 ? amount : 0,
+      p1paid:  paidBy === 1 ? amount : 0,
+    };
+  }
+  const ratio  = exp.splitRatio ?? 50;
+  const p0share = Math.round(amount * ratio) / 100;
+  return {
+    p0share,
+    p1share: amount - p0share,
+    p0paid:  paidBy === 0 ? amount : 0,
+    p1paid:  paidBy === 1 ? amount : 0,
+  };
+}
+
+function calcBalance(expenses) {
+  let p0paid = 0, p1paid = 0, p0eff = 0, p1eff = 0;
+  expenses.forEach(exp => {
+    const { p0share, p1share, p0paid: pp0, p1paid: pp1 } = getPersonShares(exp);
+    p0paid += pp0; p1paid += pp1; p0eff += p0share; p1eff += p1share;
+  });
+  return { p0paid, p1paid, p0eff, p1eff, p0net: p0paid - p0eff };
+}
+
 // ===== NAVIGATION =====
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
@@ -166,10 +197,39 @@ document.getElementById('next-month-btn').addEventListener('click', () => {
 // ===== MODAL =====
 let editingId = null;
 let selectedPerson = 0;
+let splitEnabled = false;
+let splitRatio = 50;
+
+function setRatioPreset(ratio) {
+  if (ratio === 'custom') {
+    document.getElementById('ratio-slider-wrap').style.display = '';
+    document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === 'custom'));
+    return;
+  }
+  splitRatio = parseInt(ratio);
+  document.getElementById('ratio-slider').value = splitRatio;
+  document.getElementById('ratio-p0-pct').textContent = splitRatio + ' %';
+  document.getElementById('ratio-p1-pct').textContent = (100 - splitRatio) + ' %';
+  document.getElementById('ratio-slider-wrap').style.display = 'none';
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio == ratio));
+  updateRatioPreview();
+}
+
+function updateRatioPreview() {
+  const amount  = parseFloat(document.getElementById('expense-amount').value) || 0;
+  const preview = document.getElementById('ratio-preview');
+  if (!amount) { preview.textContent = 'Zadejte částku pro náhled'; return; }
+  const p0 = Math.round(amount * splitRatio) / 100;
+  const p1 = amount - p0;
+  preview.textContent = `${state.persons[0].name} hradí ${fmt(p0)} · ${state.persons[1].name} hradí ${fmt(p1)}`;
+}
 
 function openModal(expenseId) {
   editingId = expenseId || null;
   selectedPerson = 0;
+  splitEnabled   = false;
+  splitRatio     = 50;
+
   document.getElementById('modal-title').textContent = editingId ? 'Upravit výdaj' : 'Nový výdaj';
   document.getElementById('expense-name').value   = '';
   document.getElementById('expense-amount').value = '';
@@ -182,6 +242,19 @@ function openModal(expenseId) {
   document.getElementById('toggle-p1').textContent = state.persons[0].name;
   document.getElementById('toggle-p2').textContent = state.persons[1].name;
 
+  // reset split UI
+  document.getElementById('expense-split').checked          = false;
+  document.getElementById('split-ratio-group').style.display = 'none';
+  document.getElementById('split-toggle-label').textContent  = 'Platí pouze jedna osoba';
+  document.getElementById('ratio-slider').value              = 50;
+  document.getElementById('ratio-p0-pct').textContent        = '50 %';
+  document.getElementById('ratio-p1-pct').textContent        = '50 %';
+  document.getElementById('ratio-slider-wrap').style.display = 'none';
+  document.getElementById('ratio-preview').textContent       = 'Zadejte částku pro náhled';
+  document.querySelectorAll('.ratio-btn').forEach((b, i) => b.classList.toggle('active', i === 0));
+  document.querySelectorAll('.modal-p0-name').forEach(el => el.textContent = state.persons[0].name);
+  document.querySelectorAll('.modal-p1-name').forEach(el => el.textContent = state.persons[1].name);
+
   if (editingId) {
     const exp = state.expenses.find(e => e.id === editingId);
     if (exp) {
@@ -190,7 +263,24 @@ function openModal(expenseId) {
       document.getElementById('expense-date').value   = exp.date;
       document.getElementById('expense-note').value   = exp.note || '';
       sel.value      = exp.categoryId;
-      selectedPerson = exp.personIdx;
+      selectedPerson = exp.paidBy ?? exp.personIdx ?? 0;
+
+      if (exp.split) {
+        splitEnabled = true;
+        splitRatio   = exp.splitRatio ?? 50;
+        document.getElementById('expense-split').checked          = true;
+        document.getElementById('split-ratio-group').style.display = '';
+        document.getElementById('split-toggle-label').textContent  = 'Výdaj bude rozdělen';
+        document.getElementById('ratio-slider').value              = splitRatio;
+        document.getElementById('ratio-p0-pct').textContent        = splitRatio + ' %';
+        document.getElementById('ratio-p1-pct').textContent        = (100 - splitRatio) + ' %';
+        const knownPreset = ['50','60','70','33'].includes(String(splitRatio));
+        document.querySelectorAll('.ratio-btn').forEach(b => {
+          b.classList.toggle('active', knownPreset ? b.dataset.ratio == splitRatio : b.dataset.ratio === 'custom');
+        });
+        if (!knownPreset) document.getElementById('ratio-slider-wrap').style.display = '';
+        updateRatioPreview();
+      }
     }
   }
 
@@ -222,6 +312,33 @@ document.getElementById('modal-close').addEventListener('click',   closeModal);
 document.getElementById('modal-cancel').addEventListener('click',  closeModal);
 document.getElementById('modal-overlay').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
 
+// split toggle
+document.getElementById('expense-split').addEventListener('change', e => {
+  splitEnabled = e.target.checked;
+  document.getElementById('split-ratio-group').style.display = splitEnabled ? '' : 'none';
+  document.getElementById('split-toggle-label').textContent  = splitEnabled ? 'Výdaj bude rozdělen' : 'Platí pouze jedna osoba';
+  if (splitEnabled) updateRatioPreview();
+});
+
+// ratio preset buttons
+document.querySelectorAll('.ratio-btn').forEach(btn => {
+  btn.addEventListener('click', () => setRatioPreset(btn.dataset.ratio));
+});
+
+// ratio slider
+document.getElementById('ratio-slider').addEventListener('input', e => {
+  splitRatio = parseInt(e.target.value);
+  document.getElementById('ratio-p0-pct').textContent = splitRatio + ' %';
+  document.getElementById('ratio-p1-pct').textContent = (100 - splitRatio) + ' %';
+  document.querySelectorAll('.ratio-btn').forEach(b => b.classList.toggle('active', b.dataset.ratio === 'custom'));
+  updateRatioPreview();
+});
+
+// amount change updates preview
+document.getElementById('expense-amount').addEventListener('input', () => {
+  if (splitEnabled) updateRatioPreview();
+});
+
 document.getElementById('modal-save').addEventListener('click', async () => {
   const name      = document.getElementById('expense-name').value.trim();
   const amountRaw = document.getElementById('expense-amount').value;
@@ -237,7 +354,10 @@ document.getElementById('modal-save').addEventListener('click', async () => {
   const expense = {
     id: editingId || Date.now().toString(),
     name, amount, date, categoryId, note,
-    personIdx: selectedPerson,
+    paidBy:     selectedPerson,
+    personIdx:  selectedPerson,
+    split:      splitEnabled,
+    splitRatio: splitEnabled ? splitRatio : null,
   };
 
   const wasEditing = !!editingId;
@@ -269,13 +389,21 @@ document.getElementById('confirm-overlay').addEventListener('click', e => {
 // ===== RENDER EXPENSE ITEM =====
 function renderExpenseItem(exp) {
   const cat    = catById(exp.categoryId);
-  const person = state.persons[exp.personIdx] || state.persons[0];
+  const paidBy = exp.paidBy ?? exp.personIdx ?? 0;
+  const person = state.persons[paidBy] || state.persons[0];
   const div    = document.createElement('div');
   div.className = 'expense-item';
+
+  let splitBadge = '';
+  if (exp.split) {
+    const r  = exp.splitRatio ?? 50;
+    splitBadge = `<span class="split-chip">⚡ ${r}/${100 - r}</span>`;
+  }
+
   div.innerHTML = `
     <div class="expense-cat-icon">${cat.emoji}</div>
     <div class="expense-info">
-      <div class="expense-name">${escHtml(exp.name)}</div>
+      <div class="expense-name">${escHtml(exp.name)} ${splitBadge}</div>
       <div class="expense-meta">
         <span class="expense-person-badge" style="background:${person.color}">${escHtml(person.name)}</span>
         <span class="expense-meta-dot">·</span>
@@ -320,35 +448,35 @@ function renderDashboard() {
   document.getElementById('analytics-month-label').textContent = monthLabel(m, y);
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
-  const p1    = expenses.filter(e => e.personIdx === 0).reduce((s, e) => s + e.amount, 0);
-  const p2    = expenses.filter(e => e.personIdx === 1).reduce((s, e) => s + e.amount, 0);
+  const { p0eff, p1eff, p0paid, p1paid, p0net } = calcBalance(expenses);
 
   document.getElementById('total-amount').textContent = fmt(total);
   document.getElementById('p1-label').textContent     = persons[0].name;
   document.getElementById('p2-label').textContent     = persons[1].name;
-  document.getElementById('p1-amount').textContent    = fmt(p1);
-  document.getElementById('p2-amount').textContent    = fmt(p2);
-  document.getElementById('p1-percent').textContent   = total ? Math.round(p1/total*100) + ' %' : '0 %';
-  document.getElementById('p2-percent').textContent   = total ? Math.round(p2/total*100) + ' %' : '0 %';
+  document.getElementById('p1-amount').textContent    = fmt(p0eff);
+  document.getElementById('p2-amount').textContent    = fmt(p1eff);
+  document.getElementById('p1-percent').textContent   = total ? Math.round(p0eff / total * 100) + ' %' : '0 %';
+  document.getElementById('p2-percent').textContent   = total ? Math.round(p1eff / total * 100) + ' %' : '0 %';
 
-  const diff = Math.abs(p1 - p2);
-  document.getElementById('balance-value').textContent = fmt(diff / 2);
-  if (diff < 1) {
+  // balance: positive p0net means p0 overpaid (p1 owes p0)
+  const owedAmt = Math.abs(p0net);
+  document.getElementById('balance-value').textContent = fmt(owedAmt);
+  if (owedAmt < 1) {
     document.getElementById('balance-direction').textContent = 'Vyrovnáno';
-  } else if (p1 > p2) {
+  } else if (p0net > 0) {
     document.getElementById('balance-direction').textContent = `${persons[1].name} dluží ${persons[0].name}`;
   } else {
     document.getElementById('balance-direction').textContent = `${persons[0].name} dluží ${persons[1].name}`;
   }
 
-  const p1pct = total ? p1/total*100 : 50;
-  const p2pct = total ? p2/total*100 : 50;
-  document.getElementById('split-fill-p1').style.width      = p1pct + '%';
-  document.getElementById('split-fill-p2').style.width      = p2pct + '%';
+  const p0pct = total ? p0eff / total * 100 : 50;
+  const p1pct = total ? p1eff / total * 100 : 50;
+  document.getElementById('split-fill-p1').style.width      = p0pct + '%';
+  document.getElementById('split-fill-p2').style.width      = p1pct + '%';
   document.getElementById('split-fill-p1').style.background = persons[0].color;
   document.getElementById('split-fill-p2').style.background = persons[1].color;
-  document.getElementById('split-p1-pct').textContent  = Math.round(p1pct) + ' %';
-  document.getElementById('split-p2-pct').textContent  = Math.round(p2pct) + ' %';
+  document.getElementById('split-p1-pct').textContent  = Math.round(p0pct) + ' %';
+  document.getElementById('split-p2-pct').textContent  = Math.round(p1pct) + ' %';
   document.getElementById('split-p1-name').textContent = persons[0].name;
   document.getElementById('split-p2-name').textContent = persons[1].name;
 
@@ -374,7 +502,7 @@ function renderExpenses() {
   const catFilter    = document.getElementById('filter-category').value;
 
   if (search)               expenses = expenses.filter(e => e.name.toLowerCase().includes(search) || (e.note||'').toLowerCase().includes(search));
-  if (personFilter !== 'all') expenses = expenses.filter(e => e.personIdx === parseInt(personFilter));
+  if (personFilter !== 'all') expenses = expenses.filter(e => (e.paidBy ?? e.personIdx) === parseInt(personFilter));
   if (catFilter !== 'all')    expenses = expenses.filter(e => e.categoryId === catFilter);
 
   const sorted = [...expenses].sort((a,b) => b.date.localeCompare(a.date));
@@ -445,7 +573,8 @@ function renderAnalytics() {
   } else {
     top5.forEach((exp, i) => {
       const cat    = catById(exp.categoryId);
-      const person = state.persons[exp.personIdx] || state.persons[0];
+      const paidBy = exp.paidBy ?? exp.personIdx ?? 0;
+      const person = state.persons[paidBy] || state.persons[0];
       const item   = document.createElement('div');
       item.className = 'top-item';
       item.innerHTML = `
