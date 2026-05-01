@@ -203,7 +203,6 @@
       <header class="view-header">
         <div>
           <h1 class="view-title">Výdaje</h1>
-          <p class="view-subtitle" id="expenses-month-label">Duben 2026</p>
         </div>
         <div class="header-actions">
           <div class="search-wrap">
@@ -225,6 +224,25 @@
         </div>
       </header>
 
+      <!-- Period selector -->
+      <div class="period-bar" id="expenses-period-bar">
+        <div class="period-tabs">
+          <button class="period-tab" data-mode="day">Den</button>
+          <button class="period-tab" data-mode="week">Týden</button>
+          <button class="period-tab active" data-mode="month">Měsíc</button>
+          <button class="period-tab" data-mode="year">Rok</button>
+        </div>
+        <div class="period-nav">
+          <button class="btn-ghost period-prev-btn" aria-label="Předchozí">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="period-label" id="expenses-period-label">Duben 2026</span>
+          <button class="btn-ghost period-next-btn" aria-label="Další">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
+
       <div class="expense-list full-list" id="all-expense-list">
         <div class="empty-state">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -238,9 +256,27 @@
       <header class="view-header">
         <div>
           <h1 class="view-title">Statistiky</h1>
-          <p class="view-subtitle" id="analytics-month-label">Duben 2026</p>
         </div>
       </header>
+
+      <!-- Period selector -->
+      <div class="period-bar" id="analytics-period-bar">
+        <div class="period-tabs">
+          <button class="period-tab" data-mode="day">Den</button>
+          <button class="period-tab" data-mode="week">Týden</button>
+          <button class="period-tab active" data-mode="month">Měsíc</button>
+          <button class="period-tab" data-mode="year">Rok</button>
+        </div>
+        <div class="period-nav">
+          <button class="btn-ghost period-prev-btn" aria-label="Předchozí">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <span class="period-label" id="analytics-period-label">Duben 2026</span>
+          <button class="btn-ghost period-next-btn" aria-label="Další">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </div>
 
       <div class="analytics-grid">
         <!-- Category Breakdown -->

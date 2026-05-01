@@ -838,6 +838,59 @@ body {
 .modal-p0-name { color: var(--p1-color); font-weight: 700; }
 .modal-p1-name { color: var(--p2-color); font-weight: 700; }
 
+/* ===== PERIOD BAR ===== */
+.period-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.period-tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 3px;
+}
+.period-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-2);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 5px 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.period-tab:hover { color: var(--text); }
+.period-tab.active {
+  background: white;
+  color: var(--accent);
+  font-weight: 600;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+}
+.period-nav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.period-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 140px;
+  text-align: center;
+}
+
 /* ===== SETUP SCREEN ===== */
 .setup-screen {
   position: fixed; inset: 0;
@@ -956,6 +1009,10 @@ body {
   .view-title { font-size: 22px; }
   .header-actions { gap: 8px; }
   .search-input { width: 140px; }
+  .period-bar { flex-direction: column; align-items: stretch; }
+  .period-tabs { justify-content: center; }
+  .period-nav { justify-content: center; }
+  .period-label { min-width: 120px; font-size: 13px; }
 
   /* Bottom nav visible on mobile */
   .bottom-nav {

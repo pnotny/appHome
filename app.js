@@ -161,6 +161,96 @@ function calcBalance(expenses) {
   return { p0paid, p1paid, p0eff, p1eff, p0net: p0paid - p0eff };
 }
 
+// ===== PERIOD FILTER STATE =====
+let viewMode = 'month'; // 'day' | 'week' | 'month' | 'year'
+let viewDate = new Date();
+
+function weekStart(d) {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  const day = date.getDay();
+  date.setDate(date.getDate() - (day === 0 ? 6 : day - 1));
+  return date;
+}
+
+function periodLabel() {
+  switch (viewMode) {
+    case 'day':
+      return viewDate.toLocaleDateString('cs-CZ', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+    case 'week': {
+      const s = weekStart(viewDate);
+      const e = new Date(s); e.setDate(e.getDate() + 6);
+      const sf = s.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short' });
+      const ef = e.toLocaleDateString('cs-CZ', { day: 'numeric', month: 'short', year: 'numeric' });
+      return `${sf} – ${ef}`;
+    }
+    case 'month':
+      return viewDate.toLocaleDateString('cs-CZ', { month: 'long', year: 'numeric' });
+    case 'year':
+      return String(viewDate.getFullYear());
+  }
+}
+
+function expensesForPeriod() {
+  return state.expenses.filter(e => {
+    const d = new Date(e.date);
+    switch (viewMode) {
+      case 'day':
+        return e.date === viewDate.toISOString().slice(0, 10);
+      case 'week': {
+        const s = weekStart(viewDate);
+        const en = new Date(s); en.setDate(en.getDate() + 6); en.setHours(23, 59, 59);
+        return d >= s && d <= en;
+      }
+      case 'month':
+        return d.getMonth() === viewDate.getMonth() && d.getFullYear() === viewDate.getFullYear();
+      case 'year':
+        return d.getFullYear() === viewDate.getFullYear();
+    }
+  });
+}
+
+function navigatePeriod(dir) {
+  const d = new Date(viewDate);
+  switch (viewMode) {
+    case 'day':   d.setDate(d.getDate() + dir); break;
+    case 'week':  d.setDate(d.getDate() + dir * 7); break;
+    case 'month': d.setMonth(d.getMonth() + dir); break;
+    case 'year':  d.setFullYear(d.getFullYear() + dir); break;
+  }
+  viewDate = d;
+  syncPeriodBars();
+  renderExpenses();
+  renderAnalytics();
+}
+
+function setViewMode(mode) {
+  viewMode = mode;
+  syncPeriodBars();
+  renderExpenses();
+  renderAnalytics();
+}
+
+function syncPeriodBars() {
+  const label = periodLabel();
+  document.getElementById('expenses-period-label').textContent = label;
+  document.getElementById('analytics-period-label').textContent = label;
+  document.querySelectorAll('.period-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.mode === viewMode);
+  });
+}
+
+// Period bar event listeners
+document.querySelectorAll('.period-tab').forEach(btn => {
+  btn.addEventListener('click', () => setViewMode(btn.dataset.mode));
+});
+document.querySelectorAll('.period-prev-btn').forEach(btn => {
+  btn.addEventListener('click', () => navigatePeriod(-1));
+});
+document.querySelectorAll('.period-next-btn').forEach(btn => {
+  btn.addEventListener('click', () => navigatePeriod(1));
+});
+
 // ===== NAVIGATION =====
 document.querySelectorAll('.nav-item').forEach(btn => {
   btn.addEventListener('click', () => switchView(btn.dataset.view));
@@ -443,9 +533,7 @@ function renderDashboard() {
   const { currentMonth: m, currentYear: y, persons } = state;
   const expenses = expensesForMonth(m, y);
 
-  document.getElementById('month-label').textContent           = monthLabel(m, y);
-  document.getElementById('expenses-month-label').textContent  = monthLabel(m, y);
-  document.getElementById('analytics-month-label').textContent = monthLabel(m, y);
+  document.getElementById('month-label').textContent = monthLabel(m, y);
 
   const total = expenses.reduce((s, e) => s + e.amount, 0);
   const { p0eff, p1eff, p0paid, p1paid, p0net } = calcBalance(expenses);
@@ -495,7 +583,7 @@ function renderDashboard() {
 
 // ===== EXPENSES VIEW =====
 function renderExpenses() {
-  let expenses = expensesForMonth(state.currentMonth, state.currentYear);
+  let expenses = expensesForPeriod();
 
   const search      = document.getElementById('search-input').value.toLowerCase();
   const personFilter = document.getElementById('filter-person').value;
@@ -533,7 +621,7 @@ function renderExpenses() {
 
 // ===== ANALYTICS =====
 function renderAnalytics() {
-  const expenses = expensesForMonth(state.currentMonth, state.currentYear);
+  const expenses = expensesForPeriod();
   const catTotals = {};
   expenses.forEach(e => { catTotals[e.categoryId] = (catTotals[e.categoryId] || 0) + e.amount; });
   const total  = expenses.reduce((s, e) => s + e.amount, 0);
@@ -815,6 +903,7 @@ document.getElementById('generate-btn').addEventListener('click', () => {
 
 // ===== INIT =====
 updateSidebarPersons();
+syncPeriodBars();
 renderAll();
 renderSettings();
 
