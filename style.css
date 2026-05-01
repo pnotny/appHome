@@ -843,57 +843,78 @@ body {
 .modal-p0-name { color: var(--p1-color); font-weight: 700; }
 .modal-p1-name { color: var(--p2-color); font-weight: 700; }
 
-/* ===== PERIOD BAR ===== */
+/* ===== PERIOD BAR (Apple-style) ===== */
 .period-bar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 10px 14px;
+  gap: 12px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow);
+  flex-wrap: wrap;
 }
+
+/* iOS UISegmentedControl */
 .period-tabs {
   display: flex;
-  gap: 4px;
-  background: var(--bg);
-  border-radius: 10px;
-  padding: 3px;
+  background: rgba(116,116,128,0.12);
+  border-radius: 9px;
+  padding: 2px;
+  gap: 0;
 }
 .period-tab {
+  flex: 1;
   border: none;
   background: transparent;
-  color: var(--text-2);
+  color: var(--text);
   font-family: var(--font);
   font-size: 13px;
   font-weight: 500;
-  padding: 5px 13px;
-  border-radius: 8px;
+  padding: 6px 16px;
+  border-radius: 7px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: color 0.15s ease;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
 }
-.period-tab:hover { color: var(--text); }
+.period-tab:hover { color: var(--accent); }
 .period-tab.active {
   background: white;
-  color: var(--accent);
+  color: var(--text);
   font-weight: 600;
-  box-shadow: 0 1px 6px rgba(0,0,0,0.1);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.05);
+  transition: none;
 }
+
+/* Navigation row */
 .period-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
+.period-arrow {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10), 0 0 0 1px var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--accent);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.period-arrow:hover  { background: var(--accent); color: white; box-shadow: 0 2px 8px rgba(0,122,255,0.3); }
+.period-arrow:active { transform: scale(0.92); }
 .period-label {
   font-size: 14px;
   font-weight: 600;
   color: var(--text);
-  min-width: 140px;
+  min-width: 150px;
   text-align: center;
+  letter-spacing: -0.2px;
 }
 
 /* ===== SETUP SCREEN ===== */
@@ -1014,10 +1035,11 @@ body {
   .view-title { font-size: 22px; }
   .header-actions { gap: 8px; }
   .search-input { width: 140px; }
-  .period-bar { flex-direction: column; align-items: stretch; }
-  .period-tabs { justify-content: center; }
+  .period-bar { flex-direction: column; align-items: stretch; gap: 8px; }
+  .period-tabs { width: 100%; }
+  .period-tab { padding: 6px 10px; font-size: 12px; }
   .period-nav { justify-content: center; }
-  .period-label { min-width: 120px; font-size: 13px; }
+  .period-label { min-width: 130px; }
 
   /* Bottom nav visible on mobile */
   .bottom-nav {

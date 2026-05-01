@@ -193,13 +193,17 @@ function periodLabel() {
 
 function expensesForPeriod() {
   return state.expenses.filter(e => {
-    const d = new Date(e.date);
+    // Parse as local time to avoid UTC offset shifting the date
+    const [ey, em, ed] = e.date.split('-').map(Number);
+    const d = new Date(ey, em - 1, ed);
     switch (viewMode) {
       case 'day':
-        return e.date === viewDate.toISOString().slice(0, 10);
+        return d.getFullYear() === viewDate.getFullYear() &&
+               d.getMonth()    === viewDate.getMonth()    &&
+               d.getDate()     === viewDate.getDate();
       case 'week': {
-        const s = weekStart(viewDate);
-        const en = new Date(s); en.setDate(en.getDate() + 6); en.setHours(23, 59, 59);
+        const s  = weekStart(viewDate);
+        const en = new Date(s); en.setDate(en.getDate() + 6);
         return d >= s && d <= en;
       }
       case 'month':
@@ -215,7 +219,7 @@ function navigatePeriod(dir) {
   switch (viewMode) {
     case 'day':   d.setDate(d.getDate() + dir); break;
     case 'week':  d.setDate(d.getDate() + dir * 7); break;
-    case 'month': d.setMonth(d.getMonth() + dir); break;
+    case 'month': d.setDate(1); d.setMonth(d.getMonth() + dir); break;
     case 'year':  d.setFullYear(d.getFullYear() + dir); break;
   }
   viewDate = d;

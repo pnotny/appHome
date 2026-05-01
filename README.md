@@ -92,7 +92,8 @@ appHome/
 
 | Verze | Co přibylo |
 |-------|-----------|
-| **1.4** | Filtr období (den / týden / měsíc / rok) ve Výdajích a Statistikách |
+| **1.5** | Oprava filtru období + Apple-style segmented control s kulatými šipkami |
+| **1.4** | Filtr období (den / týden / měsíc / rok) ve Výdajích a Statistikách + README |
 | **1.3** | Volitelné rozdělení výdajů — split toggle s nastavitelným poměrem |
 | **1.2** | Firebase Firestore — sdílená data v reálném čase |
 | **1.1** | PWA — instalovatelná mobilní aplikace, Service Worker, offline podpora |
