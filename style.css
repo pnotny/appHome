@@ -573,6 +573,11 @@ body {
 }
 .settings-card-title { font-size: 15px; font-weight: 600; }
 .settings-card-danger { grid-column: 1 / -1; }
+.settings-card-info { grid-column: 1 / -1; }
+.app-info-row { display: flex; align-items: center; gap: 14px; }
+.app-info-name { font-size: 15px; font-weight: 600; }
+.app-info-version { font-size: 13px; color: var(--text-2); margin-top: 2px; }
+.app-info-gh { margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: 13px; }
 
 .setting-row {
   display: flex;
