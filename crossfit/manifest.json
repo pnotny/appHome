@@ -1,0 +1,21 @@
+{
+  "name": "CrossFit Coach",
+  "short_name": "CF Coach",
+  "description": "Inteligentní generátor CrossFit tréninků na míru cvičenci",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "theme_color": "#0B0B10",
+  "background_color": "#0B0B10",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["health", "fitness", "sports"],
+  "lang": "cs"
+}
