@@ -4,17 +4,18 @@
 
 (function () {
   const $ = sel => document.querySelector(sel);
-  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
   const DAY_LABELS = ['Po', 'Út', 'St', 'Čt', 'Pá', 'So', 'Ne'];
   const DAY_TYPE_OPTIONS = ['strength', 'gymnastics', 'monostructural', 'chipper', 'rest'];
   const FORMAT_OPTIONS = ['emom', 'amrap', 'for-time', 'chipper', 'tabata', 'intervals', 'steady'];
+  const DURATION_OPTIONS = [20, 30, 45, 60, 75];
 
   const TEST_PROFILE = {
     name: 'Testovací profil', gender: 'M', bodyweight: 95, level: 'advanced',
     oneRM: { backSquat: null, frontSquat: 110, deadlift: null, clean: 100, snatch: 60, press: null },
     equipment: ['barbell', 'rack', 'kettlebell', 'dumbbell', 'box', 'bike-erg', 'rower', 'ski-erg'],
     excludedPatterns: ['olympic'],
-    goal: 'condition', timeAvailable: 35, preferredFormats: ['emom', 'amrap'],
+    goal: 'condition', timeAvailable: 45, preferredFormats: ['emom', 'amrap'],
     weeklyTemplate: window.CFStorage.DEFAULT_WEEKLY_TEMPLATE.slice()
   };
 
@@ -104,6 +105,15 @@
     }
   }
 
+  // Přegeneruje trénink pro aktuálně zobrazený den s nejnovějším profilem —
+  // volá se po uložení profilu, aby se změny (vybavení, 1RM, délka…) hned projevily,
+  // i když už pro daný den existuje uložený trénink z historie.
+  function regenerateForCurrentProfile() {
+    state.currentWorkout = window.CFGenerator.generateWorkout(state.profile, state.viewDate, state.history);
+    state.currentWorkout._saved = false;
+    state.editMode = false;
+  }
+
   function renderWeekStrip() {
     const dates = weekDatesAround(state.viewDate);
     const today = todayISO();
@@ -190,6 +200,16 @@
       </div>
     </div>`;
 
+    html += `<div class="card">
+      <div class="block-title-row" style="margin-bottom:10px;">
+        <span class="block-title">Délka tréninku</span>
+        <span class="text-2" style="font-size:12.5px;">cíl: ${state.profile.timeAvailable} min</span>
+      </div>
+      <div class="segmented" id="duration-picker">
+        ${DURATION_OPTIONS.map(d => `<button type="button" class="${state.profile.timeAvailable === d ? 'active' : ''}" data-duration="${d}">${d} min</button>`).join('')}
+      </div>
+    </div>`;
+
     w.blocks.forEach((b, i) => { html += blockHtml(b, i, state.editMode); });
 
     html += `<div class="btn-row mt-16">
@@ -209,6 +229,15 @@
   }
 
   function bindTodayEvents() {
+    $$('[data-duration]', $('#duration-picker')).forEach(btn => btn.addEventListener('click', () => {
+      const minutes = parseInt(btn.dataset.duration, 10);
+      if (state.profile.timeAvailable === minutes) return;
+      state.profile.timeAvailable = minutes;
+      window.CFStorage.saveProfile(state.profile);
+      regenerateForCurrentProfile();
+      render();
+    }));
+
     $$('.week-day').forEach(el => el.addEventListener('click', () => {
       state.viewDate = el.dataset.date;
       state.editMode = false;
@@ -591,7 +620,7 @@
       <div class="card">
         <div class="field"><label>Cíl</label>${segmented('goal', [{ value: 'strength', label: 'Síla' }, { value: 'condition', label: 'Kondice' }, { value: 'weight-loss', label: 'Hubnutí' }, { value: 'skill', label: 'Skill' }], p.goal)}</div>
         <div class="field"><label>Dostupný čas na trénink: <strong id="time-val">${p.timeAvailable} min</strong></label>
-          <input type="range" id="f-time" min="15" max="60" step="5" value="${p.timeAvailable}" />
+          <input type="range" id="f-time" min="15" max="90" step="5" value="${p.timeAvailable}" />
         </div>
       </div>
     </div>
@@ -655,7 +684,7 @@
     $('#btn-save-profile').addEventListener('click', () => {
       window.CFStorage.saveProfile(p);
       state.profile = clone(p);
-      state.currentWorkout = null;
+      regenerateForCurrentProfile();
       toast('Profil uložen');
       switchTab('today');
     });
@@ -665,7 +694,7 @@
       window.CFStorage.saveProfile(tp);
       state.profile = clone(tp);
       state.profileDraft = clone(tp);
-      state.currentWorkout = null;
+      regenerateForCurrentProfile();
       toast('Testovací profil načten a uložen');
       switchTab('today');
     });
