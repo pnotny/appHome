@@ -644,7 +644,436 @@ window.CF_EXERCISES = [
       intermediate: { desc: 'Devil press se střední zátěží.', criteria: 'Spojí burpee a dvouruční DB snatch plynule.' },
       rx: { desc: 'Devil press s RX zátěží ve vysokém objemu.', criteria: 'Udrží tempo 10+ opakování pod únavou.' } },
     cues: ['Hrudník k zemi mezi činkami', 'Extenze kyčlí táhne swing nahoru', 'Plynulý přechod burpee → snatch'],
-    mistakes: ['Neúplný kontakt hrudníku se zemí', 'Tažení pouze pažemi', 'Ztráta tempa mezi fázemi'] }
+    mistakes: ['Neúplný kontakt hrudníku se zemí', 'Tažení pouze pažemi', 'Ztráta tempa mezi fázemi'] },
+
+  /* ------------------- WEIGHTLIFTING — doplňkové zvedy -------------------- */
+
+  { id: 'good-morning', name: 'Good Morning', category: 'weightlifting', pattern: 'hinge',
+    muscles: ['hamstringy', 'hýždě', 'dolní záda'], equipment: ['barbell', 'rack'],
+    loadable: true, oneRMKey: 'backSquat', variantMultiplier: 0.35,
+    standard: { rx: { M: 52, F: 34 }, scaled: { M: 34, F: 24 } },
+    levels: {
+      beginner: { desc: 'Good morning s prázdnou tyčí, malý rozsah pohybu.', criteria: 'Zvládá hip hinge bez zátěže s rovnými zády.' },
+      intermediate: { desc: 'Good morning se střední zátěží v plném rozsahu.', criteria: 'Udrží neutrální páteř do rovnoběžky s podlahou.' },
+      rx: { desc: 'Good morning s plnou zátěží v kontrolovaném tempu.', criteria: 'Konzistentní technika i u vyšší zátěže bez kulacení zad.' } },
+    cues: ['Mírně pokrčená kolena', 'Kyčle jdou vzad', 'Tyč na horní části zad, ne na krku'],
+    mistakes: ['Kulacení dolních zad', 'Pohyb z kolen místo z kyčlí', 'Příliš velký rozsah nad rámec mobility'] },
+
+  { id: 'zercher-squat', name: 'Zercher Squat', category: 'weightlifting', pattern: 'squat',
+    muscles: ['kvadricepsy', 'core', 'biceps'], equipment: ['barbell', 'rack'],
+    loadable: true, oneRMKey: 'backSquat', variantMultiplier: 0.6,
+    standard: { rx: { M: 70, F: 45 }, scaled: { M: 45, F: 27 } },
+    levels: {
+      beginner: { desc: 'Zercher squat s prázdnou tyčí, krátké držení v loktech.', criteria: 'Udrží tyč v loketních jamkách po celý air squat.' },
+      intermediate: { desc: 'Zercher squat se střední zátěží.', criteria: 'Vzpřímený trup bez bolesti v loktech při 40 %+ 1RM.' },
+      rx: { desc: 'Zercher squat s plnou zátěží.', criteria: 'Stabilní pozice i u těžkých vah bez ztráty trupu.' } },
+    cues: ['Tyč v ohybu loktů, ne na předloktí', 'Lokty těsně u těla', 'Vzpřímený trup po celou dobu'],
+    mistakes: ['Předklánění trupu', 'Tyč sklouzává na předloktí', 'Příliš široký úchop'] },
+
+  { id: 'clean-pull', name: 'Clean Pull', category: 'weightlifting', pattern: 'olympic',
+    muscles: ['záda', 'hýždě', 'trapézy'], equipment: ['barbell'],
+    loadable: true, oneRMKey: 'clean', variantMultiplier: 1.1,
+    standard: { rx: { M: 70, F: 47 }, scaled: { M: 47, F: 31 } },
+    levels: {
+      beginner: { desc: 'Clean pull s lehkou zátěží, důraz na sekvenci tahu.', criteria: 'Zvládá hip hinge a extenzi bez zátěže na patách.' },
+      intermediate: { desc: 'Clean pull se střední/vyšší zátěží.', criteria: 'Konzistentní trojitá extenze bez ohýbání paží.' },
+      rx: { desc: 'Clean pull s nadmaximální zátěží (nad 1RM cleanu).', criteria: 'Silná a rychlá extenze i u zátěže nad běžný clean.' } },
+    cues: ['Tyč blízko těla po celou dráhu', 'Extenze kyčlí, kolen a kotníků najednou', 'Paže zůstávají propnuté'],
+    mistakes: ['Předčasné pokrčení paží', 'Tyč se vzdaluje od těla', 'Neúplná extenze kyčlí'] },
+
+  { id: 'snatch-pull', name: 'Snatch Pull', category: 'weightlifting', pattern: 'olympic',
+    muscles: ['záda', 'hýždě', 'trapézy'], equipment: ['barbell'],
+    loadable: true, oneRMKey: 'snatch', variantMultiplier: 1.1,
+    standard: { rx: { M: 52, F: 34 }, scaled: { M: 34, F: 24 } },
+    levels: {
+      beginner: { desc: 'Snatch pull s lehkou zátěží širokým úchopem.', criteria: 'Zvládá hip hinge se snatch úchopem bez zátěže.' },
+      intermediate: { desc: 'Snatch pull se střední/vyšší zátěží.', criteria: 'Konzistentní extenze bez ohýbání paží.' },
+      rx: { desc: 'Snatch pull s nadmaximální zátěží (nad 1RM snatche).', criteria: 'Silná a rychlá extenze i u zátěže nad běžný snatch.' } },
+    cues: ['Široký úchop po celou dráhu', 'Tyč těsně u těla', 'Aktivní trapézy až na konci extenze'],
+    mistakes: ['Předčasné pokrčení paží', 'Tyč se vzdaluje od těla', 'Neúplná extenze kyčlí'] },
+
+  { id: 'muscle-snatch', name: 'Muscle Snatch', category: 'weightlifting', pattern: 'olympic',
+    muscles: ['ramena', 'trapézy', 'záda'], equipment: ['barbell'],
+    loadable: true, oneRMKey: 'snatch', variantMultiplier: 0.55,
+    standard: { rx: { M: 29, F: 18 }, scaled: { M: 18, F: 12 } },
+    levels: {
+      beginner: { desc: 'Muscle snatch s tyčí/velmi lehkou zátěží.', criteria: 'Zvládá snatch grip a strict tlak nad hlavu bez zátěže.' },
+      intermediate: { desc: 'Muscle snatch se střední zátěží.', criteria: 'Plynulý přechod z tahu do tlaku bez zastavení.' },
+      rx: { desc: 'Muscle snatch s vyšší zátěží ve strict provedení.', criteria: 'Silný strict tlak bez pomoci nohou i u vyšší zátěže.' } },
+    cues: ['Vysoký loket při tahu', 'Plynulý přechod tah → tlak', 'Bez podřepu pod tyč'],
+    mistakes: ['Podřep pod tyč (stává se snatchem)', 'Nízký loket', 'Zastavení mezi tahem a tlakem'] },
+
+  { id: 'snatch-balance', name: 'Snatch Balance', category: 'weightlifting', pattern: 'olympic',
+    muscles: ['ramena', 'core', 'nohy'], equipment: ['barbell', 'rack'],
+    loadable: true, oneRMKey: 'snatch', variantMultiplier: 0.75,
+    standard: { rx: { M: 43, F: 29 }, scaled: { M: 29, F: 20 } },
+    levels: {
+      beginner: { desc: 'Snatch balance s tyčí, nácvik rychlého propadu.', criteria: 'Zvládá overhead squat s lehkou zátěží.' },
+      intermediate: { desc: 'Snatch balance se střední zátěží.', criteria: 'Stabilní příjem v podřepu při 50 %+ 1RM snatche.' },
+      rx: { desc: 'Snatch balance s vyšší zátěží.', criteria: 'Rychlý a stabilní propad i u vysoké zátěže.' } },
+    cues: ['Agresivní dip a drive', 'Rychlý propad pod tyč', 'Aktivní zámek nad hlavou při příjmu'],
+    mistakes: ['Pomalý propad', 'Tyč vpřed od těla', 'Nestabilní příjem v podřepu'] },
+
+  { id: 'overhead-lunge', name: 'Overhead Lunge', category: 'weightlifting', pattern: 'lunge',
+    muscles: ['ramena', 'core', 'nohy'], equipment: ['barbell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 34, F: 22 }, scaled: { M: 22, F: 15 } },
+    levels: {
+      beginner: { desc: 'Overhead lunge s PVC tyčí/lehkou zátěží.', criteria: 'Udrží tyč nad hlavou v aktivním zámku po celý výpad.' },
+      intermediate: { desc: 'Overhead lunge se střední zátěží na kratší vzdálenost.', criteria: 'Stabilní overhead pozice při 5+ výpadech na nohu.' },
+      rx: { desc: 'Overhead lunge s vyšší zátěží na delší vzdálenost.', criteria: 'Udrží stabilitu nad hlavou i pod únavou na 20 m+.' } },
+    cues: ['Aktivní zámek v ramenou', 'Vzpřímený trup', 'Koleno těsně nad zemí ve výpadu'],
+    mistakes: ['Pád tyče vpřed', 'Předklánění trupu', 'Krátký/nekontrolovaný krok'] },
+
+  { id: 'front-rack-lunge', name: 'Front Rack Lunge', category: 'weightlifting', pattern: 'lunge',
+    muscles: ['nohy', 'core', 'ramena'], equipment: ['barbell', 'rack'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 43, F: 29 }, scaled: { M: 29, F: 20 } },
+    levels: {
+      beginner: { desc: 'Front rack lunge s lehkou zátěží, krátké kroky.', criteria: 'Udrží rack pozici po celý výpad bez poklesu loktů.' },
+      intermediate: { desc: 'Front rack lunge se střední zátěží.', criteria: 'Stabilní rack pozice při 8+ výpadech na nohu.' },
+      rx: { desc: 'Front rack lunge s vyšší zátěží na vzdálenost.', criteria: 'Udrží techniku i pod únavou na delší vzdálenost.' } },
+    cues: ['Lokty vysoko po celou dobu', 'Vzpřímený trup', 'Koleno sleduje směr špičky'],
+    mistakes: ['Pokles loktů', 'Krátký krok', 'Kolísání rovnováhy do stran'] },
+
+  { id: 'barbell-walking-lunge', name: 'Barbell Walking Lunge', category: 'weightlifting', pattern: 'lunge',
+    muscles: ['nohy', 'hýždě', 'core'], equipment: ['barbell', 'rack'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 52, F: 34 }, scaled: { M: 34, F: 24 } },
+    levels: {
+      beginner: { desc: 'Walking lunge s lehkou tyčí na zádech.', criteria: 'Zvládá 10 výpadů s kontrolovaným krokem bez zátěže.' },
+      intermediate: { desc: 'Walking lunge se střední zátěží na vzdálenost.', criteria: 'Konzistentní rytmus výpadů při 40 %+ 1RM back squatu.' },
+      rx: { desc: 'Walking lunge s vyšší zátěží na delší vzdálenost.', criteria: 'Udrží tempo a formu i pod únavou na 20 m+.' } },
+    cues: ['Vzpřímený trup', 'Dlouhý, kontrolovaný krok', 'Koleno těsně nad zemí'],
+    mistakes: ['Předklánění trupu', 'Krátký nestabilní krok', 'Odrážení kolena od země'] },
+
+  { id: 'floor-press', name: 'Floor Press', category: 'weightlifting', pattern: 'push',
+    muscles: ['hrudník', 'triceps', 'ramena'], equipment: ['barbell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 52, F: 34 }, scaled: { M: 34, F: 24 } },
+    levels: {
+      beginner: { desc: 'Floor press s prázdnou tyčí, nácvik dráhy.', criteria: 'Kontrolovaně spustí a vytlačí tyč v omezeném rozsahu.' },
+      intermediate: { desc: 'Floor press se střední zátěží.', criteria: 'Stabilní dráha tyče při 50 %+ 1RM benče.' },
+      rx: { desc: 'Floor press s plnou zátěží.', criteria: 'Silný a stabilní tlak i u těžkých vah.' } },
+    cues: ['Lopatky stažené k sobě', 'Lokty se lehce dotknou země', 'Tyč po přímé dráze nahoru'],
+    mistakes: ['Odrážení loktů od země', 'Nestabilní zápěstí', 'Neúplný zámek nahoře'] },
+
+  { id: 'bent-over-row', name: 'Bent Over Row', category: 'weightlifting', pattern: 'pull',
+    muscles: ['záda', 'biceps', 'zadní deltoid'], equipment: ['barbell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 52, F: 34 }, scaled: { M: 34, F: 24 } },
+    levels: {
+      beginner: { desc: 'Bent over row s lehkou zátěží, kratší rozsah.', criteria: 'Udrží hip hinge pozici bez kulacení zad.' },
+      intermediate: { desc: 'Bent over row se střední zátěží.', criteria: 'Kontrolovaný tah k trupu bez švihu při 50 %+ 1RM.' },
+      rx: { desc: 'Bent over row s plnou zátěží.', criteria: 'Silný tah bez ztráty pozice trupu i u těžkých vah.' } },
+    cues: ['Rovná záda v hip hinge', 'Tah lokty vzad, ne nahoru', 'Tyč k pupku/dolním žebrům'],
+    mistakes: ['Kulacení zad', 'Švihání trupem', 'Neúplný rozsah tahu'] },
+
+  { id: 'deficit-deadlift', name: 'Deficit Deadlift', category: 'weightlifting', pattern: 'hinge',
+    muscles: ['hamstringy', 'hýždě', 'záda'], equipment: ['barbell', 'box'],
+    loadable: true, oneRMKey: 'deadlift', variantMultiplier: 0.85,
+    standard: { rx: { M: 88, F: 60 }, scaled: { M: 52, F: 36 } },
+    levels: {
+      beginner: { desc: 'Deficit deadlift na nízkém stupínku (2–3 cm) s lehkou zátěží.', criteria: 'Zvládá standardní deadlift bez kulacení zad.' },
+      intermediate: { desc: 'Deficit deadlift na stupínku 5 cm se střední zátěží.', criteria: 'Udrží rovná záda i s prodlouženým rozsahem.' },
+      rx: { desc: 'Deficit deadlift na stupínku 5 cm+ s plnou zátěží.', criteria: 'Čistý hinge a lockout i u těžkých vah s deficitem.' } },
+    cues: ['Delší nádech před tahem', 'Rovná záda po celou dobu', 'Tyč těsně u holení'],
+    mistakes: ['Kulacení dolních zad', 'Trhání ze země', 'Příliš vysoký deficit na aktuální mobilitu'] },
+
+  /* --------------------------- GYMNASTICS — core, skoky, tahy ------------- */
+
+  { id: 'ring-row', name: 'Ring Row', category: 'gymnastics', pattern: 'pull',
+    muscles: ['záda', 'biceps', 'core'], equipment: ['rings'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Ring row ve vzpřímenější pozici (menší úhel těla).', criteria: 'Zvládne 8 opakování s rovným tělem.' },
+      intermediate: { desc: 'Ring row v horizontální pozici.', criteria: 'Zvládne 15+ opakování s plným rozsahem.' },
+      rx: { desc: 'Ring row s pokrčenýma nohama nebo ve vyšším objemu.', criteria: 'Zvládne 20+ opakování pod únavou.' } },
+    cues: ['Tělo v jedné linii', 'Táhni hruď k rukám', 'Stažené lopatky nahoře'],
+    mistakes: ['Prohnutá/propadlá pozice boků', 'Neúplný rozsah', 'Tah pouze pažemi'] },
+
+  { id: 'wall-walk', name: 'Wall Walk', category: 'gymnastics', pattern: 'push',
+    muscles: ['ramena', 'core', 'triceps'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Částečný wall walk do poloviny cesty ke zdi.', criteria: 'Zvládá plank s nohama na zvýšené ploše.' },
+      intermediate: { desc: 'Plný wall walk hrudníkem/bradou ke zdi.', criteria: 'Zvládne 3+ wall walky s kontrolou.' },
+      rx: { desc: 'Wall walk ve vyšším objemu/sériích.', criteria: 'Zvládne 5+ wall walků plynule za sebou.' } },
+    cues: ['Malé kroky rukama i nohama', 'Napnutý core po celou dobu', 'Kontrolovaný sestup'],
+    mistakes: ['Prohnutá záda', 'Příliš velké kroky', 'Nekontrolovaný pád při sestupu'] },
+
+  { id: 'tuck-jump', name: 'Tuck Jump', category: 'gymnastics', pattern: 'jump',
+    muscles: ['nohy', 'hýždě', 'core'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Skok s částečným přitažením kolen.', criteria: 'Zvládne 5 skoků s měkkým dopadem.' },
+      intermediate: { desc: 'Tuck jump s koleny k hrudníku.', criteria: 'Zvládne 10+ opakování v konzistentním rytmu.' },
+      rx: { desc: 'Tuck jump ve vysokém tempu/objemu.', criteria: 'Zvládne 20+ opakování bez ztráty výšky skoku.' } },
+    cues: ['Měkký, tichý dopad', 'Kolena aktivně k hrudníku', 'Rychlý opakovaný odraz'],
+    mistakes: ['Tvrdý dopad na paty', 'Neúplné přitažení kolen', 'Ztráta rovnováhy při dopadu'] },
+
+  { id: 'broad-jump', name: 'Broad Jump', category: 'gymnastics', pattern: 'jump',
+    muscles: ['nohy', 'hýždě'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Broad jump na krátkou vzdálenost, důraz na dopad.', criteria: 'Zvládne bezpečný odraz a měkký dopad na obě nohy.' },
+      intermediate: { desc: 'Broad jump na maximální vzdálenost s krátkou pauzou.', criteria: 'Zvládne 5+ skoků s konzistentní vzdáleností.' },
+      rx: { desc: 'Broad jump opakovaně bez pauzy (rebound).', criteria: 'Zvládne 8+ skoků za sebou bez zastavení.' } },
+    cues: ['Švih paží pro hybnost', 'Extenze kyčlí při odrazu', 'Měkký dopad s pokrčenými koleny'],
+    mistakes: ['Dopad na propnuté nohy', 'Ztráta rovnováhy vpřed', 'Krátký odraz kvůli strachu z dopadu'] },
+
+  { id: 'plank-hold', name: 'Plank Hold', category: 'gymnastics', pattern: 'core',
+    muscles: ['core', 'ramena'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Plank na předloktích s koleny na zemi.', criteria: 'Udrží plank na kolenou 20 s.' },
+      intermediate: { desc: 'Standardní plank na předloktích/rukou.', criteria: 'Udrží plank 45–60 s bez propadu boků.' },
+      rx: { desc: 'Plank v delším držení nebo s přidanou nestabilitou.', criteria: 'Udrží plank 90 s+ bez ztráty pozice.' } },
+    cues: ['Tělo v jedné linii', 'Napnuté hýždě a core', 'Neutrální krk, pohled dolů'],
+    mistakes: ['Propadlé boky', 'Zvednutý zadek', 'Zadržování dechu'] },
+
+  { id: 'hollow-rock', name: 'Hollow Rock', category: 'gymnastics', pattern: 'core',
+    muscles: ['core', 'hip flexory'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Hollow hold s pokrčenými koleny.', criteria: 'Udrží hollow hold 15 s.' },
+      intermediate: { desc: 'Hollow rock s nataženým tělem.', criteria: 'Zvládne 15+ plynulých rocků v hollow pozici.' },
+      rx: { desc: 'Hollow rock ve vysokém objemu/tempu.', criteria: 'Zvládne 30+ rocků bez ztráty napětí v zádech.' } },
+    cues: ['Bederní páteř přitisknutá k zemi', 'Napnuté celé tělo', 'Malý, kontrolovaný rock'],
+    mistakes: ['Odlepená bederní páteř', 'Pokrčená kolena při plné verzi', 'Ztráta napětí uprostřed série'] },
+
+  { id: 'ghd-back-extension', name: 'GHD Back Extension', category: 'gymnastics', pattern: 'core',
+    muscles: ['dolní záda', 'hýždě', 'hamstringy'], equipment: ['ghd'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'GHD extension v menším rozsahu, pomalé tempo.', criteria: 'Zvládne 8 opakování bez bolesti zad.' },
+      intermediate: { desc: 'GHD extension v plném rozsahu.', criteria: 'Zvládne 15+ v plném rozsahu.' },
+      rx: { desc: 'GHD extension ve vyšším objemu/tempu.', criteria: 'Zvládne 25+ v konzistentním tempu.' } },
+    cues: ['Pohyb z kyčlí, ne z bederní páteře', 'Napnuté hýždě nahoře', 'Kontrolovaný sestup'],
+    mistakes: ['Přehnané prohnutí v bedrech nahoře', 'Příliš rychlé/trhané tempo', 'Zaseknuté kyčle v pantu'] },
+
+  { id: 'russian-twist', name: 'Russian Twist', category: 'gymnastics', pattern: 'rotation',
+    muscles: ['core', 'šikmé břišní svaly'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Twist s patami na zemi, menší rozsah.', criteria: 'Zvládne 10 opakování s kontrolou.' },
+      intermediate: { desc: 'Twist se zvednutýma nohama.', criteria: 'Zvládne 20+ opakování bez dotyku země nohama.' },
+      rx: { desc: 'Twist s přidanou zátěží nebo ve vysokém objemu.', criteria: 'Zvládne 40+ opakování bez ztráty tempa.' } },
+    cues: ['Vzpřímená záda, ne kulatá', 'Rotace z trupu, ne jen paží', 'Kontrolovaný nádech/výdech'],
+    mistakes: ['Kulacení dolních zad', 'Příliš rychlé/nekontrolované švihy', 'Malý rozsah rotace'] },
+
+  { id: 'v-up', name: 'V-up', category: 'gymnastics', pattern: 'core',
+    muscles: ['core', 'hip flexory'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Částečný V-up (jen horní část těla).', criteria: 'Zvládne 8 opakování s kontrolou.' },
+      intermediate: { desc: 'Plný V-up s dotykem rukou u nohou.', criteria: 'Zvládne 15+ v plném rozsahu.' },
+      rx: { desc: 'V-up ve vysokém objemu/tempu.', criteria: 'Zvládne 25+ bez ztráty formy.' } },
+    cues: ['Současný zvedák trupu i nohou', 'Napnuté nohy a paže', 'Kontrolovaný sestup'],
+    mistakes: ['Pokrčená kolena', 'Švihání pažemi bez zapojení core', 'Nedostatečný rozsah'] },
+
+  { id: 'sit-up', name: 'Sit-up', category: 'gymnastics', pattern: 'core',
+    muscles: ['core', 'hip flexory'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Sit-up s fixovanýma nohama, pomalé tempo.', criteria: 'Zvládne 10 opakování v kontrolovaném tempu.' },
+      intermediate: { desc: 'Sit-up v rychlejším tempu na objem.', criteria: 'Zvládne 25+ nepřerušovaných opakování.' },
+      rx: { desc: 'Sit-up ve vysokém tempu pod únavou.', criteria: 'Udrží tempo 40+ opakování bez ztráty formy.' } },
+    cues: ['Plynulý pohyb bez trhání', 'Dotek rukama země za hlavou', 'Aktivní core při vstávání'],
+    mistakes: ['Tažení za krk', 'Odrážení se od země', 'Neúplný rozsah'] },
+
+  { id: 'bear-crawl', name: 'Bear Crawl', category: 'gymnastics', pattern: 'full-body',
+    muscles: ['core', 'ramena', 'nohy'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Bear crawl na krátkou vzdálenost, pomalé tempo.', criteria: 'Zvládne 5 m s kontrolovaným křížovým pohybem.' },
+      intermediate: { desc: 'Bear crawl na střední vzdálenost.', criteria: 'Zvládne 15 m bez propadu boků.' },
+      rx: { desc: 'Bear crawl na delší vzdálenost/rychlost.', criteria: 'Udrží tempo a formu na 25 m+.' } },
+    cues: ['Kolena těsně nad zemí', 'Diagonální pohyb ruka-noha', 'Napnutý core po celou dobu'],
+    mistakes: ['Zvednuté boky do vzduchu', 'Propadlá záda', 'Nekoordinovaný pohyb končetin'] },
+
+  { id: 'box-step-up', name: 'Box Step-up', category: 'gymnastics', pattern: 'lunge',
+    muscles: ['kvadricepsy', 'hýždě'], equipment: ['box'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Step-up na nízký box s oporou.', criteria: 'Zvládne 10 opakování na každou nohu s kontrolou.' },
+      intermediate: { desc: 'Step-up na střední box bez odrazu druhou nohou.', criteria: 'Zvládne 15+ opakování na nohu bez odrazu.' },
+      rx: { desc: 'Step-up na vysoký box ve vyšším tempu.', criteria: 'Udrží tempo i pod únavou bez ztráty rovnováhy.' } },
+    cues: ['Celé chodidlo na boxu', 'Extenze kyčle nahoře', 'Kontrolovaný sestup'],
+    mistakes: ['Odraz zadní nohou', 'Neúplná extenze nahoře', 'Tvrdý/nekontrolovaný dopad při sestupu'] },
+
+  { id: 'walking-lunge', name: 'Walking Lunge', category: 'gymnastics', pattern: 'lunge',
+    muscles: ['nohy', 'hýždě', 'core'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Walking lunge na krátkou vzdálenost, pomalé tempo.', criteria: 'Zvládne 10 výpadů s kontrolou rovnováhy.' },
+      intermediate: { desc: 'Walking lunge na střední vzdálenost.', criteria: 'Zvládne 20 m v konzistentním rytmu.' },
+      rx: { desc: 'Walking lunge na delší vzdálenost/rychlost.', criteria: 'Udrží tempo a formu na 40 m+.' } },
+    cues: ['Vzpřímený trup', 'Dlouhý kontrolovaný krok', 'Koleno těsně nad zemí'],
+    mistakes: ['Předklánění trupu', 'Krátký nestabilní krok', 'Odrážení kolena od země'] },
+
+  { id: 'jumping-lunge', name: 'Jumping Lunge', category: 'gymnastics', pattern: 'lunge',
+    muscles: ['nohy', 'hýždě', 'core'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Střídání nohou bez skoku (statický výpad).', criteria: 'Zvládne 10 kontrolovaných výpadů bez skoku.' },
+      intermediate: { desc: 'Jumping lunge s menší výškou skoku.', criteria: 'Zvládne 10+ opakování s měkkým dopadem.' },
+      rx: { desc: 'Jumping lunge ve vysokém tempu/objemu.', criteria: 'Zvládne 20+ opakování bez ztráty rovnováhy.' } },
+    cues: ['Měkký dopad v podřepu', 'Napnutý core pro rovnováhu', 'Rychlá výměna nohou ve vzduchu'],
+    mistakes: ['Tvrdý dopad', 'Ztráta rovnováhy při výměně', 'Nedostatečná hloubka výpadu'] },
+
+  { id: 'ring-push-up', name: 'Ring Push-up', category: 'gymnastics', pattern: 'push',
+    muscles: ['hrudník', 'triceps', 'core'], equipment: ['rings'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Ring push-up s koleny na zemi.', criteria: 'Zvládne 5 opakování se stabilními kruhy.' },
+      intermediate: { desc: 'Standardní ring push-up.', criteria: 'Zvládne 10+ opakování s minimálním kolébáním.' },
+      rx: { desc: 'Ring push-up ve vyšším objemu/tempu.', criteria: 'Zvládne 20+ opakování pod únavou.' } },
+    cues: ['Stabilní kruhy, minimální kolébání', 'Tělo v jedné linii', 'Plný rozsah dolů i nahoru'],
+    mistakes: ['Nestabilní/kolébající se kruhy', 'Propadlé boky', 'Neúplný rozsah'] },
+
+  { id: 'superman-hold', name: 'Superman Hold', category: 'gymnastics', pattern: 'core',
+    muscles: ['dolní záda', 'hýždě'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Superman hold s menším zvednutím končetin.', criteria: 'Udrží pozici 15 s.' },
+      intermediate: { desc: 'Superman hold s plným zvednutím paží a nohou.', criteria: 'Udrží pozici 30 s.' },
+      rx: { desc: 'Superman hold v delším držení nebo s pulzováním.', criteria: 'Udrží pozici 45 s+ bez poklesu.' } },
+    cues: ['Napnuté hýždě a záda', 'Paže a nohy nataženy od těla', 'Klidné, kontrolované dýchání'],
+    mistakes: ['Přehnané prohnutí v bedrech', 'Zadržování dechu', 'Pokles končetin uprostřed držení'] },
+
+  /* ----------------------- MONOSTRUCTURAL — doplňkové --------------------- */
+
+  { id: 'shuttle-run', name: 'Shuttle Run', category: 'monostructural', pattern: 'monostructural',
+    muscles: ['nohy', 'kardiovaskulární systém'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Shuttle run na krátkou vzdálenost, pomalé tempo.', criteria: 'Zvládne 4 × 10 m v pohodovém tempu.' },
+      intermediate: { desc: 'Shuttle run ve středním tempu s rychlými obraty.', criteria: 'Zvládne 8 × 10 m s kontrolovanými obraty.' },
+      rx: { desc: 'Shuttle run ve vysokém tempu/sprintu.', criteria: 'Udrží rychlé tempo i ve vícenásobných úsecích.' } },
+    cues: ['Nízké těžiště při obratu', 'Krátké rychlé kroky u čáry', 'Pohled ve směru běhu'],
+    mistakes: ['Vysoké těžiště při obratu (ztráta času)', 'Přebíhání čáry bez dotyku', 'Nepravidelné tempo mezi úseky'] },
+
+  { id: 'swim', name: 'Swim', category: 'monostructural', pattern: 'monostructural',
+    muscles: ['celé tělo', 'kardiovaskulární systém'], equipment: ['none'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Plavání v nízkém tempu, kratší úseky s odpočinkem.', criteria: 'Zvládne 50 m nepřerušovaně jakýmkoliv způsobem.' },
+      intermediate: { desc: 'Plavání ve středním tempu na střední vzdálenost.', criteria: 'Zvládne 200–400 m v konzistentním tempu.' },
+      rx: { desc: 'Plavání ve vysokém tempu/intervalech.', criteria: 'Udrží rychlé tempo i ve vícenásobných intervalech.' } },
+    cues: ['Rovnoměrný, kontrolovaný dech', 'Dlouhý záběr', 'Vodorovná pozice těla'],
+    mistakes: ['Zadržování dechu', 'Krátký, uspěchaný záběr', 'Propadlé boky ve vodě'] },
+
+  /* -------------------- STRONGMAN / ODD-OBJECT — doplňkové ---------------- */
+
+  { id: 'turkish-get-up', name: 'Turkish Get-up', category: 'strongman', pattern: 'full-body',
+    muscles: ['celé tělo', 'core', 'ramena'], equipment: ['kettlebell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 24, F: 16 }, scaled: { M: 16, F: 12 } },
+    levels: {
+      beginner: { desc: 'Get-up bez zátěže, nácvik jednotlivých fází.', criteria: 'Zvládá všech 6 fází pohybu bez zátěže.' },
+      intermediate: { desc: 'Turkish get-up s lehkou kettlebell.', criteria: 'Zvládne plynulý get-up na obě strany se zátěží.' },
+      rx: { desc: 'Turkish get-up s RX zátěží.', criteria: 'Technicky čistý get-up i u vyšší zátěže na obě strany.' } },
+    cues: ['Oči na zátěži po celou dobu', 'Pevný zámek v rameni', 'Pomalé, kontrolované fáze'],
+    mistakes: ['Ztráta zámku v zápěstí/rameni', 'Přeskakování fází', 'Uspěchané, nekontrolované tempo'] },
+
+  { id: 'atlas-stone-to-shoulder', name: 'Atlas Stone to Shoulder', category: 'strongman', pattern: 'hinge',
+    muscles: ['záda', 'nohy', 'core'], equipment: ['stone'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 80, F: 50 }, scaled: { M: 50, F: 30 } },
+    levels: {
+      beginner: { desc: 'Zvednutí lehkého kamene do klína/na box.', criteria: 'Zvládá bezpečně obejmout a zvednout kámen ze země.' },
+      intermediate: { desc: 'Atlas stone na rameno se střední zátěží.', criteria: 'Zvládne 5+ opakování s kontrolovanou technikou.' },
+      rx: { desc: 'Atlas stone na rameno s těžkým kamenem opakovaně.', criteria: 'Zvládne 8+ opakování pod únavou s bezpečnou technikou.' } },
+    cues: ['Kámen těsně u těla', 'Extenze kyčlí táhne kámen do klína', 'Rotace na rameno kontrolovaně'],
+    mistakes: ['Kulacení zad při zvedání', 'Kámen daleko od těla', 'Nekontrolovaný náraz na rameno'] },
+
+  { id: 'tire-flip', name: 'Tire Flip', category: 'strongman', pattern: 'hinge',
+    muscles: ['celé tělo', 'nohy', 'záda'], equipment: ['tire'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 120, F: 70 }, scaled: { M: 80, F: 45 } },
+    levels: {
+      beginner: { desc: 'Flip s lehkou/menší pneumatikou.', criteria: 'Zvládá hip hinge a tlak do pneumatiky bez kulacení zad.' },
+      intermediate: { desc: 'Tire flip se střední pneumatikou v sérii.', criteria: 'Zvládne 5+ opakování s konzistentní technikou.' },
+      rx: { desc: 'Tire flip s těžkou pneumatikou ve vysokém tempu.', criteria: 'Udrží tempo a bezpečnou techniku i pod únavou.' } },
+    cues: ['Hip hinge při zvedání', 'Dotlačit koleny/tělem, ne jen pažemi', 'Rovná záda po celou dobu'],
+    mistakes: ['Zvedání s kulatými zády', 'Tahání pouze pažemi', 'Nedotlačení tělem na dokončení flipu'] },
+
+  { id: 'yoke-carry', name: 'Yoke Carry', category: 'strongman', pattern: 'carry',
+    muscles: ['nohy', 'core', 'trapézy'], equipment: ['yoke'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 140, F: 90 }, scaled: { M: 100, F: 60 } },
+    levels: {
+      beginner: { desc: 'Chůze s lehkým yoke na krátkou vzdálenost.', criteria: 'Ujde 10 m se vzpřímeným trupem.' },
+      intermediate: { desc: 'Yoke carry se střední zátěží na střední vzdálenost.', criteria: 'Ujde 20 m v konzistentním tempu.' },
+      rx: { desc: 'Yoke carry s těžkou zátěží na delší vzdálenost.', criteria: 'Udrží rychlé tempo na 40 m+ pod únavou.' } },
+    cues: ['Napnutý core pod zátěží', 'Krátké, rychlé kroky', 'Pohled vpřed, ne dolů'],
+    mistakes: ['Předklánění pod zátěží', 'Příliš dlouhé nestabilní kroky', 'Zadržování dechu'] },
+
+  { id: 'battle-ropes', name: 'Battle Ropes', category: 'strongman', pattern: 'full-body',
+    muscles: ['ramena', 'core', 'kardiovaskulární systém'], equipment: ['battle-rope'],
+    loadable: false,
+    levels: {
+      beginner: { desc: 'Střídavé vlny v pomalém tempu, kratší intervaly.', criteria: 'Udrží plynulé střídavé vlny 20 s.' },
+      intermediate: { desc: 'Battle ropes ve středním tempu na čas.', criteria: 'Udrží konzistentní tempo 30–40 s.' },
+      rx: { desc: 'Battle ropes ve vysokém tempu/intervalech.', criteria: 'Udrží maximální tempo i ve víceintervalovém tréninku.' } },
+    cues: ['Pohon z podřepu a kyčlí, ne jen paží', 'Napnutý core', 'Konzistentní výška vln'],
+    mistakes: ['Práce pouze pažemi', 'Vzpřímený strnulý postoj', 'Klesající výška vln s únavou'] },
+
+  { id: 'sled-drag-backward', name: 'Sled Drag (Backward)', category: 'strongman', pattern: 'carry',
+    muscles: ['kvadricepsy', 'hamstringy'], equipment: ['sled'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 60, F: 40 }, scaled: { M: 40, F: 25 } },
+    levels: {
+      beginner: { desc: 'Zpětný tah lehkého sledu na kratší vzdálenost.', criteria: 'Ujde 10 m pozadu se stabilním držením popruhů.' },
+      intermediate: { desc: 'Sled drag pozadu se střední zátěží.', criteria: 'Ujde 20 m v konzistentním tempu.' },
+      rx: { desc: 'Sled drag pozadu s vyšší zátěží na delší vzdálenost.', criteria: 'Udrží tempo na 40 m+ bez zastavení.' } },
+    cues: ['Nízké těžiště, pokrčená kolena', 'Krátké, rychlé kroky pozadu', 'Napnuté paže drží tah'],
+    mistakes: ['Příliš vzpřímená pozice', 'Dlouhé nestabilní kroky', 'Ztráta napětí v popruzích'] },
+
+  { id: 'sandbag-clean', name: 'Sandbag Clean', category: 'strongman', pattern: 'hinge',
+    muscles: ['celé tělo'], equipment: ['sandbag'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 40, F: 25 }, scaled: { M: 25, F: 15 } },
+    levels: {
+      beginner: { desc: 'Zvednutí lehkého pytle na rameno/do klína.', criteria: 'Zvládá bezpečný hip hinge se zvednutím pytle ze země.' },
+      intermediate: { desc: 'Sandbag clean na rameno se střední zátěží.', criteria: 'Zvládne 5+ opakování s kontrolovanou technikou.' },
+      rx: { desc: 'Sandbag clean s těžkým pytlem opakovaně.', criteria: 'Zvládne 10+ opakování pod únavou.' } },
+    cues: ['Pytel těsně u těla', 'Extenze kyčlí táhne pohyb', 'Kontrolovaný příjem na rameni/hrudníku'],
+    mistakes: ['Kulacení zad při zvedání', 'Pytel daleko od těla', 'Nekontrolovaný náraz při příjmu'] },
+
+  { id: 'single-arm-dumbbell-row', name: 'Single Arm Dumbbell Row', category: 'strongman', pattern: 'pull',
+    muscles: ['záda', 'biceps'], equipment: ['dumbbell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 32, F: 20 }, scaled: { M: 20, F: 14 } },
+    levels: {
+      beginner: { desc: 'Row s lehkou činkou, opora o box/lavici.', criteria: 'Zvládne 10 opakování na stranu s rovnými zády.' },
+      intermediate: { desc: 'Row se střední zátěží.', criteria: 'Zvládne 15+ opakování na stranu bez rotace trupu.' },
+      rx: { desc: 'Row s vyšší zátěží ve vyšším objemu.', criteria: 'Zvládne 20+ opakování na stranu pod únavou.' } },
+    cues: ['Rovná záda, hip hinge pozice', 'Tah loktem vzad těsně u těla', 'Minimální rotace trupu'],
+    mistakes: ['Rotace trupu při tahu', 'Kulacení zad', 'Švihání činkou'] },
+
+  { id: 'dumbbell-step-up', name: 'Dumbbell Step-up', category: 'strongman', pattern: 'lunge',
+    muscles: ['kvadricepsy', 'hýždě'], equipment: ['dumbbell', 'box'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 22.5, F: 15 }, scaled: { M: 15, F: 10 } },
+    levels: {
+      beginner: { desc: 'Step-up s lehkými činkami na nízký box.', criteria: 'Zvládne 10 opakování na nohu s kontrolou.' },
+      intermediate: { desc: 'Step-up se střední zátěží na střední box.', criteria: 'Zvládne 12+ opakování na nohu bez odrazu.' },
+      rx: { desc: 'Step-up s vyšší zátěží ve vyšším tempu.', criteria: 'Udrží tempo i pod únavou bez ztráty rovnováhy.' } },
+    cues: ['Celé chodidlo na boxu', 'Extenze kyčle nahoře', 'Kontrolovaný sestup s činkami'],
+    mistakes: ['Odraz zadní nohou', 'Neúplná extenze nahoře', 'Nekontrolovaný dopad při sestupu'] },
+
+  { id: 'kettlebell-goblet-squat', name: 'Kettlebell Goblet Squat', category: 'strongman', pattern: 'squat',
+    muscles: ['nohy', 'hýždě', 'core'], equipment: ['kettlebell'],
+    loadable: true, oneRMKey: null,
+    standard: { rx: { M: 24, F: 16 }, scaled: { M: 16, F: 12 } },
+    levels: {
+      beginner: { desc: 'Goblet squat s lehkou kettlebell, nácvik hloubky.', criteria: 'Zvládne 10 opakování do plné hloubky.' },
+      intermediate: { desc: 'Goblet squat se střední zátěží ve vyšším objemu.', criteria: 'Zvládne 15+ nepřerušovaných opakování.' },
+      rx: { desc: 'Goblet squat s vyšší zátěží ve vysokém tempu.', criteria: 'Udrží techniku a tempo 25+ opakování pod únavou.' } },
+    cues: ['Lokty uvnitř kolenou ve spodní pozici', 'Vzpřímený trup', 'Váha na patách'],
+    mistakes: ['Předklánění trupu', 'Nedostatečná hloubka', 'Kolena padají dovnitř'] }
 
 ];
 
@@ -653,12 +1082,14 @@ window.CF_EQUIPMENT_LABELS = {
   ghd: 'GHD', box: 'Bedna (box)', 'jump-rope': 'Švihadlo', rope: 'Lano na šplh',
   rower: 'Veslovací trenažér', 'bike-erg': 'Bike erg', 'assault-bike': 'Assault bike',
   'ski-erg': 'SkiErg', kettlebell: 'Kettlebell', dumbbell: 'Jednoručky (dumbbell)',
-  'wall-ball': 'Wall ball (medicinbal)', sandbag: 'Sandbag', sled: 'Sled', none: 'Bez vybavení'
+  'wall-ball': 'Wall ball (medicinbal)', sandbag: 'Sandbag', sled: 'Sled',
+  stone: 'Atlas kámen', tire: 'Pneumatika', yoke: 'Yoke (jho)', 'battle-rope': 'Battle rope',
+  none: 'Bez vybavení'
 };
 
 window.CF_PATTERN_LABELS = {
   squat: 'Dřep', hinge: 'Hip hinge', push: 'Tlak', pull: 'Tah', carry: 'Nošení',
-  jump: 'Skok', core: 'Core', rotation: 'Rotace', 'full-body': 'Celé tělo',
+  jump: 'Skok', core: 'Core', rotation: 'Rotace', lunge: 'Výpad', 'full-body': 'Celé tělo',
   olympic: 'Vzpírání (Oly)', monostructural: 'Monostrukturální'
 };
 

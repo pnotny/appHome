@@ -220,13 +220,11 @@ window.CFGenerator = (function () {
       });
     }
 
-    const metconFormat = pickMetconFormat(['amrap', 'emom', 'for-time'], profile);
     // Pokud se blok síly nevygeneroval (např. chybí činka), ať metcon vyplní celý zbylý čas.
     const metconMinutes = clampTime(total - (main ? strengthMin : 0), 8, 40);
     const metconPool = filterPool(profile, ['gymnastics', 'monostructural', 'strongman', 'weightlifting'])
       .filter(ex => !usedPatterns.includes(ex.pattern) || ex.category === 'monostructural');
-    const picks = pickExercises(metconPool, 3, { avoidPatterns: usedPatterns, muscleLoad });
-    blocks.push(buildMetconBlock('Blok B · Metcon', metconFormat, picks, profile, metconMinutes));
+    blocks.push(...buildMetconSegments('Blok B · Metcon', ['amrap', 'emom', 'for-time'], metconPool, profile, metconMinutes, usedPatterns, muscleLoad));
 
     return blocks;
   }
@@ -255,12 +253,10 @@ window.CFGenerator = (function () {
       });
     }
 
-    const emomFormat = pickMetconFormat(['emom', 'amrap'], profile);
     // Pokud se blok skillu nevygeneroval, ať EMOM vyplní celý zbylý čas.
     const emomMinutes = clampTime(total - (skillPick ? skillMin : 0), 8, 40);
     const emomPool = filterPool(profile, ['gymnastics', 'monostructural', 'weightlifting', 'strongman']);
-    const picks = pickExercises(emomPool, 3, { avoidPatterns: usedPatterns, muscleLoad });
-    blocks.push(buildMetconBlock('Blok B · EMOM', emomFormat, picks, profile, emomMinutes));
+    blocks.push(...buildMetconSegments('Blok B · EMOM', ['emom', 'amrap'], emomPool, profile, emomMinutes, usedPatterns, muscleLoad));
 
     return blocks;
   }
@@ -354,6 +350,30 @@ window.CFGenerator = (function () {
       scheme: `AMRAP ${minutes} min`, exercises,
       notes: 'Co nejvíce kompletních kol v daném čase, technika před rychlostí.'
     };
+  }
+
+  // Dlouhý metcon/EMOM v jedné neměnné sadě cviků je mentálně (i pohybově)
+  // vyčerpávající — nad ~22 min proto rozdělíme na 2–4 kratší segmenty
+  // (~15 min každý) s vlastním výběrem cviků/partií, ale stejným formátem.
+  function buildMetconSegments(titlePrefix, formatCandidates, pool, profile, totalMinutes, baseAvoidPatterns, muscleLoad, exercisesPerSegment) {
+    exercisesPerSegment = exercisesPerSegment || 3;
+    const format = pickMetconFormat(formatCandidates, profile);
+    const numSegments = totalMinutes > 22 ? clampTime(Math.round(totalMinutes / 15), 2, 4) : 1;
+    const segMinutes = clampTime(Math.round(totalMinutes / numSegments / 5) * 5, 8, 20);
+    const blocks = [];
+    const cumulativePatterns = baseAvoidPatterns.slice();
+    const cumulativeIds = [];
+    for (let i = 0; i < numSegments; i++) {
+      let segPool = pool.filter(ex => !cumulativeIds.includes(ex.id));
+      if (segPool.length < exercisesPerSegment) segPool = pool;
+      const picks = pickExercises(segPool, exercisesPerSegment, { avoidPatterns: cumulativePatterns, muscleLoad });
+      const label = numSegments > 1 ? `${titlePrefix} · ${i + 1}/${numSegments}` : titlePrefix;
+      const block = buildMetconBlock(label, format, picks, profile, segMinutes);
+      if (numSegments > 1) block.notes += ' Krátký odpočinek (2–3 min) a nová sada cviků na jiné partie.';
+      blocks.push(block);
+      picks.forEach(p => { cumulativePatterns.push(p.pattern); cumulativeIds.push(p.id); });
+    }
+    return blocks;
   }
 
   function estimateCalories(blocks, bodyweight) {
