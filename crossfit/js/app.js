@@ -175,6 +175,7 @@
         <span class="badge badge-${state.currentWorkout.dayType}">${escapeHtml(block.formatLabel)}</span>
       </div>
       <div class="block-scheme">${escapeHtml(block.scheme || '')}${block.timeCap ? ` · Time cap ${escapeHtml(block.timeCap)}` : ''}</div>
+      <button class="btn btn-secondary btn-sm mt-8" style="margin-bottom:12px;" data-timer-block="${bIdx}">⏱ Spustit časovač</button>
       ${exercisesHtml}
       ${block.notes ? `<div class="block-notes">${escapeHtml(block.notes)}</div>` : ''}
     </div>`;
@@ -323,6 +324,24 @@
 
     $$('[data-action="info"]').forEach(btn => btn.addEventListener('click', () => openExerciseSheet(btn.dataset.exid)));
     $$('[data-action="swap"]').forEach(btn => btn.addEventListener('click', () => openSwapSheet(+btn.dataset.b, +btn.dataset.e)));
+
+    $$('[data-timer-block]').forEach(btn => btn.addEventListener('click', () => openTimerModal(+btn.dataset.timerBlock)));
+  }
+
+  function openTimerModal(blockIndex) {
+    const w = state.currentWorkout;
+    const block = w.blocks[blockIndex];
+    if (!block) return;
+    $('#modal-timer').classList.remove('hidden');
+    window.CFTimer.configure({
+      title: block.title,
+      formatLabel: block.formatLabel,
+      format: block.format,
+      dayType: w.dayType,
+      durationMin: block.durationMin,
+      timeCapLabel: block.timeCap,
+      exercises: (block.exercises || []).map(e => e.name)
+    });
   }
 
   /* --------------------------- SWAP CVIKU ------------------------------- */
@@ -854,6 +873,13 @@
         if (result === 'shared') toast('Sdíleno');
       }
     });
+
+    const closeTimer = () => { $('#modal-timer').classList.add('hidden'); window.CFTimer.destroy(); };
+    $('#modal-timer').addEventListener('click', e => { if (e.target === e.currentTarget) closeTimer(); });
+    $('#timer-close').addEventListener('click', closeTimer);
+    $('#timer-toggle').addEventListener('click', () => window.CFTimer.toggle());
+    $('#timer-reset').addEventListener('click', () => window.CFTimer.reset());
+    $('#timer-mute').addEventListener('click', () => window.CFTimer.toggleMute());
 
     render();
 

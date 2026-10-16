@@ -1,4 +1,4 @@
-const CACHE = 'crossfit-coach-v2';
+const CACHE = 'crossfit-coach-v3';
 const ASSETS = [
   './index.html',
   './style.css',
@@ -7,6 +7,7 @@ const ASSETS = [
   './js/storage.js',
   './js/share.js',
   './js/strava.js',
+  './js/timer.js',
   './data/exercises.js',
   './icon.svg',
   './manifest.json',

@@ -79,6 +79,26 @@
   </div>
 </div>
 
+<!-- Modal: tréninkový timer -->
+<div id="modal-timer" class="modal-overlay hidden">
+  <div class="modal modal-timer">
+    <button class="icon-btn modal-close" id="timer-close" aria-label="Zavřít">✕</button>
+    <button class="icon-btn" id="timer-mute" aria-label="Ztlumit" style="position:absolute; top:12px; left:12px; z-index:2;">🔈</button>
+    <div class="timer-header">
+      <span id="timer-title" class="timer-title"></span>
+      <span id="timer-format-badge" class="badge"></span>
+    </div>
+    <div id="timer-phase" class="timer-phase"></div>
+    <div id="timer-display" class="timer-display">00:00</div>
+    <div id="timer-sub" class="timer-sub"></div>
+    <div id="timer-extra"></div>
+    <div class="timer-controls btn-row">
+      <button class="btn btn-secondary" id="timer-reset">🔄 Reset</button>
+      <button class="btn btn-primary" id="timer-toggle">▶️ Start</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast" class="toast hidden"></div>
 
 <script src="data/exercises.js"></script>
@@ -86,6 +106,7 @@
 <script src="js/generator.js"></script>
 <script src="js/share.js"></script>
 <script src="js/strava.js"></script>
+<script src="js/timer.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

@@ -318,6 +318,28 @@ body {
 .share-preview canvas { width: 100%; height: auto; display: block; }
 .share-preview img { width: 100%; height: auto; display: block; }
 
+/* ===== TIMER ===== */
+.modal-timer { max-width: 380px; text-align: center; padding: 28px 18px 22px; }
+.timer-header { display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 6px; }
+.timer-title { font-size: 14px; font-weight: 700; color: var(--text-2); }
+.timer-phase {
+  font-size: 13px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  color: var(--accent); margin: 14px 0 4px;
+}
+.timer-phase-work { color: var(--orange); }
+.timer-phase-rest { color: var(--teal); }
+.timer-phase-warn { color: var(--red); }
+.timer-display {
+  font-family: var(--font-display), var(--font);
+  font-size: 72px; font-weight: 800; letter-spacing: -1px;
+  font-variant-numeric: tabular-nums; line-height: 1;
+  margin: 6px 0 8px;
+}
+.timer-sub { font-size: 13px; color: var(--text-2); font-weight: 600; margin-bottom: 10px; }
+.timer-rounds { display: flex; align-items: center; justify-content: center; gap: 14px; margin: 6px 0 14px; }
+.timer-rounds-val { font-size: 15px; font-weight: 800; min-width: 64px; }
+.timer-controls { margin-top: 10px; }
+
 /* ===== SWAP LIST ===== */
 .swap-item { display: flex; align-items: center; justify-content: space-between; padding: 13px 4px; border-top: 1px solid var(--border); cursor: pointer; }
 .swap-item:first-of-type { border-top: none; }
