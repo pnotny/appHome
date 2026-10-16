@@ -1,0 +1,10 @@
+name = "crossfit-coach-strava-proxy"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+[vars]
+STRAVA_CLIENT_ID = "REPLACE_WITH_YOUR_STRAVA_CLIENT_ID"
+ALLOWED_ORIGIN = "https://pnotny.github.io"
+
+# STRAVA_CLIENT_SECRET se NEDÁVÁ sem (soubor je v gitu) — nastav ho jako secret:
+#   wrangler secret put STRAVA_CLIENT_SECRET

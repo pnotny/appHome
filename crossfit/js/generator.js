@@ -122,12 +122,17 @@ window.CFGenerator = (function () {
     return result;
   }
 
-  function computeLoad(exercise, profile, purpose) {
+  function computeLoad(exercise, profile, purpose, autoreg) {
     if (!exercise.loadable) return null;
     let pct;
     if (purpose === 'strength') pct = 0.85;
     else if (purpose === 'metcon') pct = 0.5;
     else pct = 0.3; // technika
+
+    const adj = autoreg ? (autoreg[purpose] || 0) : 0;
+    pct += adj / 100;
+    const bounds = purpose === 'strength' ? [0.65, 0.95] : purpose === 'metcon' ? [0.35, 0.65] : [0.2, 0.4];
+    pct = Math.max(bounds[0], Math.min(bounds[1], pct));
 
     const key = exercise.oneRMKey;
     const oneRM = key ? profile.oneRM[key] : null;
@@ -136,7 +141,7 @@ window.CFGenerator = (function () {
     if (oneRM) {
       const mult = exercise.variantMultiplier != null ? exercise.variantMultiplier : 1;
       const weight = roundToStep(oneRM * mult * pct, step);
-      return { weight, unit: 'kg', source: '1RM', pct: Math.round(pct * 100) };
+      return { weight, unit: 'kg', source: '1RM', pct: Math.round(pct * 100), autoregAdj: adj };
     }
     if (exercise.standard) {
       const tier = levelTier(profile.level);
@@ -146,9 +151,48 @@ window.CFGenerator = (function () {
       const genderKey = profile.gender === 'F' ? 'F' : 'M';
       let weight = table[genderKey];
       if (purpose === 'technique') weight *= 0.6;
-      return { weight: roundToStep(weight, step), unit: 'kg', source: tier === 'rx' ? 'RX standard' : 'Scaled standard' };
+      // U standardních vah (bez 1RM) aplikujeme autoregulaci jen jako jemnou korekci ±10 %.
+      weight *= 1 + Math.max(-0.1, Math.min(0.1, adj / 100));
+      return { weight: roundToStep(weight, step), unit: 'kg', source: tier === 'rx' ? 'RX standard' : 'Scaled standard', autoregAdj: adj };
     }
     return null;
+  }
+
+  // Autoregulace: dívá se na RPE posledních zapsaných tréninků (1–10, jak těžké to bylo)
+  // a mírně posune % z 1RM pro další trénink stejného účelu (síla/metcon) nahoru/dolů.
+  function recentRpeAverage(history, relevantFormats, maxSessions) {
+    const matches = [];
+    for (const w of (history || [])) {
+      if (w.rpe == null) continue;
+      if ((w.blocks || []).some(b => relevantFormats.includes(b.format))) matches.push(w.rpe);
+      if (matches.length >= maxSessions) break;
+    }
+    if (!matches.length) return null;
+    return matches.reduce((s, v) => s + v, 0) / matches.length;
+  }
+
+  function rpeToAdjustment(avgRpe) {
+    if (avgRpe == null) return 0;
+    if (avgRpe >= 9) return -7;
+    if (avgRpe >= 8) return -3;
+    if (avgRpe >= 6) return 0;
+    if (avgRpe >= 4) return 3;
+    return 5;
+  }
+
+  function computeAutoreg(history, profile) {
+    if (!profile || profile.autoregEnabled === false) return { strength: 0, metcon: 0 };
+    return {
+      strength: rpeToAdjustment(recentRpeAverage(history, ['strength'], 3)),
+      metcon: rpeToAdjustment(recentRpeAverage(history, ['amrap', 'emom', 'for-time', 'chipper'], 3))
+    };
+  }
+
+  function autoregNote(autoreg, purpose) {
+    const adj = autoreg ? (autoreg[purpose] || 0) : 0;
+    if (!adj) return '';
+    const sign = adj > 0 ? '+' : '';
+    return ` Autoregulace dle RPE posledních tréninků: ${sign}${adj} % z 1RM.`;
   }
 
   function levelBlock(exercise, profile) {
@@ -156,8 +200,8 @@ window.CFGenerator = (function () {
     return { tier, info: exercise.levels[tier] };
   }
 
-  function toWorkoutExercise(exercise, profile, purpose, reps, note) {
-    const load = computeLoad(exercise, profile, purpose);
+  function toWorkoutExercise(exercise, profile, purpose, reps, note, autoreg) {
+    const load = computeLoad(exercise, profile, purpose, autoreg);
     const lvl = levelBlock(exercise, profile);
     return {
       exerciseId: exercise.id,
@@ -172,6 +216,7 @@ window.CFGenerator = (function () {
       unit: load ? load.unit : null,
       loadSource: load ? load.source : null,
       loadPct: load ? load.pct : null,
+      autoregAdj: load ? load.autoregAdj : null,
       cues: exercise.cues,
       mistakes: exercise.mistakes,
       note: note || ''
@@ -194,7 +239,7 @@ window.CFGenerator = (function () {
     return { sets: 5, reps: 3, label: '5 sérií × 3 opakování' };
   }
 
-  function buildStrengthDay(profile, dateStr, history) {
+  function buildStrengthDay(profile, dateStr, history, autoreg) {
     const avoid = yesterdayPatterns(history, dateStr);
     const muscleLoad = recentMuscleLoad(history, dateStr, 2);
     const pool = filterPool(profile, ['weightlifting']).filter(ex =>
@@ -209,14 +254,14 @@ window.CFGenerator = (function () {
     let usedPatterns = [];
     if (main) {
       const scheme = strengthSetsScheme(profile.level);
-      const wEx = toWorkoutExercise(main, profile, 'strength', `${scheme.sets} × ${scheme.reps}`, scheme.label);
+      const wEx = toWorkoutExercise(main, profile, 'strength', `${scheme.sets} × ${scheme.reps}`, scheme.label, autoreg);
       usedPatterns.push(main.pattern);
       blocks.push({
         title: 'Blok A · Síla', format: 'strength', formatLabel: FORMAT_LABELS.strength,
         durationMin: strengthMin, timeCap: null,
         scheme: scheme.label,
         exercises: [wEx],
-        notes: `Postupné navyšování na pracovní váhu (${wEx.weight ? wEx.weight + ' kg' : 'dle standardu'}), 2–3 min odpočinek mezi sériemi.`
+        notes: `Postupné navyšování na pracovní váhu (${wEx.weight ? wEx.weight + ' kg' : 'dle standardu'}), 2–3 min odpočinek mezi sériemi.${autoregNote(autoreg, 'strength')}`
       });
     }
 
@@ -224,12 +269,12 @@ window.CFGenerator = (function () {
     const metconMinutes = clampTime(total - (main ? strengthMin : 0), 8, 40);
     const metconPool = filterPool(profile, ['gymnastics', 'monostructural', 'strongman', 'weightlifting'])
       .filter(ex => !usedPatterns.includes(ex.pattern) || ex.category === 'monostructural');
-    blocks.push(...buildMetconSegments('Blok B · Metcon', ['amrap', 'emom', 'for-time'], metconPool, profile, metconMinutes, usedPatterns, muscleLoad));
+    blocks.push(...buildMetconSegments('Blok B · Metcon', ['amrap', 'emom', 'for-time'], metconPool, profile, metconMinutes, usedPatterns, muscleLoad, autoreg));
 
     return blocks;
   }
 
-  function buildGymnasticsDay(profile, dateStr, history) {
+  function buildGymnasticsDay(profile, dateStr, history, autoreg) {
     const avoid = yesterdayPatterns(history, dateStr);
     const muscleLoad = recentMuscleLoad(history, dateStr, 2);
     const skillPool = filterPool(profile, ['gymnastics']).filter(ex => !avoid.includes(ex.pattern));
@@ -244,7 +289,7 @@ window.CFGenerator = (function () {
     if (skillPick) {
       usedPatterns.push(skillPick.pattern);
       const lvl = levelBlock(skillPick, profile);
-      const wEx = toWorkoutExercise(skillPick, profile, 'technique', '5 × 3–5 kvalitních opakování', 'Technický nácvik');
+      const wEx = toWorkoutExercise(skillPick, profile, 'technique', '5 × 3–5 kvalitních opakování', 'Technický nácvik', autoreg);
       blocks.push({
         title: 'Blok A · Skill', format: 'strength', formatLabel: 'Technika',
         durationMin: skillMin, timeCap: null, scheme: '5 sérií, důraz na kvalitu',
@@ -256,7 +301,7 @@ window.CFGenerator = (function () {
     // Pokud se blok skillu nevygeneroval, ať EMOM vyplní celý zbylý čas.
     const emomMinutes = clampTime(total - (skillPick ? skillMin : 0), 8, 40);
     const emomPool = filterPool(profile, ['gymnastics', 'monostructural', 'weightlifting', 'strongman']);
-    blocks.push(...buildMetconSegments('Blok B · EMOM', ['emom', 'amrap'], emomPool, profile, emomMinutes, usedPatterns, muscleLoad));
+    blocks.push(...buildMetconSegments('Blok B · EMOM', ['emom', 'amrap'], emomPool, profile, emomMinutes, usedPatterns, muscleLoad, autoreg));
 
     return blocks;
   }
@@ -304,7 +349,7 @@ window.CFGenerator = (function () {
     }];
   }
 
-  function buildChipperDay(profile, dateStr, history) {
+  function buildChipperDay(profile, dateStr, history, autoreg) {
     const avoid = yesterdayPatterns(history, dateStr);
     const muscleLoad = recentMuscleLoad(history, dateStr, 2);
     const pool = filterPool(profile, ['gymnastics', 'monostructural', 'strongman', 'weightlifting']);
@@ -312,17 +357,18 @@ window.CFGenerator = (function () {
     const count = clampTime(Math.round(timeCap / 6), 4, 8);
     const picks = pickExercises(pool, count, { avoidPatterns: avoid, muscleLoad });
     const baseReps = [50, 40, 35, 30, 25, 20, 15, 10];
-    const exercises = picks.map((ex, i) => toWorkoutExercise(ex, profile, 'metcon', String(baseReps[i] || 15), ''));
+    const exercises = picks.map((ex, i) => toWorkoutExercise(ex, profile, 'metcon', String(baseReps[i] || 15), '', autoreg));
     return [{
       title: 'Chipper', format: 'chipper', formatLabel: FORMAT_LABELS.chipper,
       durationMin: timeCap, timeCap: `${timeCap} min`, scheme: 'For Time — projdi cviky v pořadí, jednou každý',
       exercises,
-      notes: 'Dlouhý objemový trénink — rozlož síly, nezačínej zbytečně rychle.'
+      notes: `Dlouhý objemový trénink — rozlož síly, nezačínej zbytečně rychle.${autoregNote(autoreg, 'metcon')}`
     }];
   }
 
-  function buildMetconBlock(title, format, picks, profile, minutes) {
-    const exercises = picks.map(ex => toWorkoutExercise(ex, profile, 'metcon', '', ''));
+  function buildMetconBlock(title, format, picks, profile, minutes, autoreg) {
+    const exercises = picks.map(ex => toWorkoutExercise(ex, profile, 'metcon', '', '', autoreg));
+    const note = autoregNote(autoreg, 'metcon');
     if (format === 'emom') {
       exercises.forEach((e, i) => {
         e.reps = e.category === 'monostructural' ? '12–15 kalorií' : (e.category === 'gymnastics' ? '8–12 opakování' : '5–6 opakování');
@@ -331,7 +377,7 @@ window.CFGenerator = (function () {
       return {
         title, format, formatLabel: FORMAT_LABELS.emom, durationMin: minutes, timeCap: null,
         scheme: `EMOM ${minutes} min — střídej ${exercises.length} cviky po minutách`,
-        exercises, notes: 'Cílem je zvládnout práci vždy v první polovině minuty a mít prostor na odpočinek.'
+        exercises, notes: `Cílem je zvládnout práci vždy v první polovině minuty a mít prostor na odpočinek.${note}`
       };
     }
     if (format === 'for-time') {
@@ -340,7 +386,7 @@ window.CFGenerator = (function () {
       return {
         title, format, formatLabel: FORMAT_LABELS['for-time'], durationMin: minutes, timeCap: cap,
         scheme: `3 kola For Time — ${exercises.map(e => e.name).join(', ')}`, exercises,
-        notes: `Time cap ${cap}. Piš si čas dokončení pro sledování progresu.`
+        notes: `Time cap ${cap}. Piš si čas dokončení pro sledování progresu.${note}`
       };
     }
     // default: AMRAP
@@ -348,14 +394,14 @@ window.CFGenerator = (function () {
     return {
       title, format: 'amrap', formatLabel: FORMAT_LABELS.amrap, durationMin: minutes, timeCap: null,
       scheme: `AMRAP ${minutes} min`, exercises,
-      notes: 'Co nejvíce kompletních kol v daném čase, technika před rychlostí.'
+      notes: `Co nejvíce kompletních kol v daném čase, technika před rychlostí.${note}`
     };
   }
 
   // Dlouhý metcon/EMOM v jedné neměnné sadě cviků je mentálně (i pohybově)
   // vyčerpávající — nad ~22 min proto rozdělíme na 2–4 kratší segmenty
   // (~15 min každý) s vlastním výběrem cviků/partií, ale stejným formátem.
-  function buildMetconSegments(titlePrefix, formatCandidates, pool, profile, totalMinutes, baseAvoidPatterns, muscleLoad, exercisesPerSegment) {
+  function buildMetconSegments(titlePrefix, formatCandidates, pool, profile, totalMinutes, baseAvoidPatterns, muscleLoad, autoreg, exercisesPerSegment) {
     exercisesPerSegment = exercisesPerSegment || 3;
     const format = pickMetconFormat(formatCandidates, profile);
     const numSegments = totalMinutes > 22 ? clampTime(Math.round(totalMinutes / 15), 2, 4) : 1;
@@ -368,7 +414,7 @@ window.CFGenerator = (function () {
       if (segPool.length < exercisesPerSegment) segPool = pool;
       const picks = pickExercises(segPool, exercisesPerSegment, { avoidPatterns: cumulativePatterns, muscleLoad });
       const label = numSegments > 1 ? `${titlePrefix} · ${i + 1}/${numSegments}` : titlePrefix;
-      const block = buildMetconBlock(label, format, picks, profile, segMinutes);
+      const block = buildMetconBlock(label, format, picks, profile, segMinutes, autoreg);
       if (numSegments > 1) block.notes += ' Krátký odpočinek (2–3 min) a nová sada cviků na jiné partie.';
       blocks.push(block);
       picks.forEach(p => { cumulativePatterns.push(p.pattern); cumulativeIds.push(p.id); });
@@ -397,21 +443,22 @@ window.CFGenerator = (function () {
           durationMin: 20, timeCap: null, scheme: 'Mobilita / regenerace',
           exercises: [], notes: 'Lehké strečování, mobilita kyčlí a ramen, procházka. Žádná intenzivní zátěž.'
         }],
-        estKcal: 60, generatedAt: new Date().toISOString(), edited: false
+        estKcal: 60, generatedAt: new Date().toISOString(), edited: false, rpe: null
       };
     }
 
     let blocks;
-    if (dayType === 'strength') blocks = buildStrengthDay(profile, dateStr, history);
-    else if (dayType === 'gymnastics') blocks = buildGymnasticsDay(profile, dateStr, history);
+    const autoreg = computeAutoreg(history, profile);
+    if (dayType === 'strength') blocks = buildStrengthDay(profile, dateStr, history, autoreg);
+    else if (dayType === 'gymnastics') blocks = buildGymnasticsDay(profile, dateStr, history, autoreg);
     else if (dayType === 'monostructural') blocks = buildMonostructuralDay(profile);
-    else blocks = buildChipperDay(profile, dateStr, history);
+    else blocks = buildChipperDay(profile, dateStr, history, autoreg);
 
     return {
       date: dateStr, dayType, dayTypeLabel: DAY_TYPE_LABELS[dayType] || dayType,
       blocks,
       estKcal: estimateCalories(blocks, profile.bodyweight || 75),
-      generatedAt: new Date().toISOString(), edited: false
+      generatedAt: new Date().toISOString(), edited: false, rpe: null
     };
   }
 
@@ -426,6 +473,6 @@ window.CFGenerator = (function () {
 
   return {
     DAY_TYPE_LABELS, FORMAT_LABELS,
-    generateWorkout, regenerateBlock, filterPool, levelTier, computeLoad, weekdayIndex
+    generateWorkout, regenerateBlock, filterPool, levelTier, computeLoad, weekdayIndex, computeAutoreg
   };
 })();

@@ -7,7 +7,8 @@ window.CFStorage = (function () {
     profile: 'cf_profile_v1',
     history: 'cf_history_v1',
     prLog: 'cf_pr_log_v1',
-    theme: 'cf_theme_v1'
+    theme: 'cf_theme_v1',
+    strava: 'cf_strava_v1'
   };
 
   const DEFAULT_WEEKLY_TEMPLATE = ['strength', 'gymnastics', 'monostructural', 'strength', 'gymnastics', 'chipper', 'rest'];
@@ -24,6 +25,7 @@ window.CFStorage = (function () {
     goal: 'condition', // strength | condition | weight-loss | skill
     timeAvailable: 30, // minut
     preferredFormats: [], // prázdné = bez preference
+    autoregEnabled: true, // autoregulace % z 1RM dle RPE posledních tréninků
     weeklyTemplate: DEFAULT_WEEKLY_TEMPLATE.slice()
   };
 
@@ -109,11 +111,26 @@ window.CFStorage = (function () {
     write(KEYS.theme, theme);
   }
 
+  function getStravaAuth() {
+    return read(KEYS.strava, null);
+  }
+
+  function saveStravaAuth(auth) {
+    write(KEYS.strava, auth);
+  }
+
+  function clearStravaAuth() {
+    const cur = getStravaAuth();
+    // workerUrl si necháme (ať ho uživatel nemusí vyplňovat znovu), jen zrušíme spojení
+    write(KEYS.strava, cur ? { workerUrl: cur.workerUrl } : null);
+  }
+
   return {
     KEYS, DEFAULT_PROFILE, DEFAULT_WEEKLY_TEMPLATE,
     getProfile, saveProfile, hasProfile,
     getHistory, saveWorkoutToHistory, getWorkoutByDate, deleteWorkout,
     getPrLog, addPrEntry,
-    getTheme, setTheme
+    getTheme, setTheme,
+    getStravaAuth, saveStravaAuth, clearStravaAuth
   };
 })();

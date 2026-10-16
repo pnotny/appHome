@@ -15,7 +15,7 @@
     oneRM: { backSquat: null, frontSquat: 110, deadlift: null, clean: 100, snatch: 60, press: null },
     equipment: ['barbell', 'rack', 'kettlebell', 'dumbbell', 'box', 'bike-erg', 'rower', 'ski-erg'],
     excludedPatterns: ['olympic'],
-    goal: 'condition', timeAvailable: 45, preferredFormats: ['emom', 'amrap'],
+    goal: 'condition', timeAvailable: 45, preferredFormats: ['emom', 'amrap'], autoregEnabled: true,
     weeklyTemplate: window.CFStorage.DEFAULT_WEEKLY_TEMPLATE.slice()
   };
 
@@ -210,6 +210,18 @@
       </div>
     </div>`;
 
+    if (w._saved) {
+      html += `<div class="card">
+        <div class="block-title-row" style="margin-bottom:6px;">
+          <span class="block-title">Jak těžké to bylo?</span>
+          <span class="text-2" style="font-size:12.5px;">RPE <strong id="rpe-live-val">${w.rpe != null ? w.rpe : 7}</strong>/10</span>
+        </div>
+        <input type="range" id="rpe-slider" min="1" max="10" step="1" value="${w.rpe != null ? w.rpe : 7}" />
+        <p class="field-hint">1 = velmi lehké · 10 = maximální úsilí. Ovlivní % z 1RM v dalších trénincích (autoregulace).</p>
+        <button class="btn btn-primary btn-sm mt-8" id="btn-save-rpe">${w.rpe != null ? '✏️ Upravit RPE' : '💾 Uložit RPE'}</button>
+      </div>`;
+    }
+
     w.blocks.forEach((b, i) => { html += blockHtml(b, i, state.editMode); });
 
     html += `<div class="btn-row mt-16">
@@ -221,6 +233,9 @@
       <button class="btn btn-secondary" id="btn-export">📤 Export</button>
     </div>`;
     if (w._saved) {
+      const stravaAuth = window.CFStorage.getStravaAuth();
+      const stravaBtnLabel = w.stravaActivityId ? '✅ Na Stravě (export znovu)' : '🟠 Export na Strava';
+      html += `<button class="btn btn-secondary btn-block" id="btn-strava-export" ${window.CFStrava.isConnected(stravaAuth) ? '' : 'disabled title="Připoj Strava v Profilu"'}>${stravaBtnLabel}</button>`;
       html += `<button class="btn btn-danger btn-block" id="btn-delete">🗑 Smazat z historie</button>`;
     }
 
@@ -256,6 +271,21 @@
     const btnEdit = $('#btn-edit');
     if (btnEdit) btnEdit.addEventListener('click', () => { state.editMode = !state.editMode; render(); });
 
+    const rpeSlider = $('#rpe-slider');
+    if (rpeSlider) rpeSlider.addEventListener('input', () => {
+      $('#rpe-live-val').textContent = rpeSlider.value;
+    });
+    const btnSaveRpe = $('#btn-save-rpe');
+    if (btnSaveRpe) btnSaveRpe.addEventListener('click', () => {
+      const val = parseInt($('#rpe-slider').value, 10);
+      state.currentWorkout.rpe = val;
+      const toStore = clone(state.currentWorkout);
+      delete toStore._saved;
+      state.history = window.CFStorage.saveWorkoutToHistory(toStore);
+      toast('RPE uloženo — příští trénink se tomu přizpůsobí');
+      render();
+    });
+
     const btnSave = $('#btn-save');
     if (btnSave) btnSave.addEventListener('click', () => {
       const w = state.currentWorkout;
@@ -278,6 +308,9 @@
 
     const btnExport = $('#btn-export');
     if (btnExport) btnExport.addEventListener('click', openShareModal);
+
+    const btnStravaExport = $('#btn-strava-export');
+    if (btnStravaExport) btnStravaExport.addEventListener('click', exportCurrentWorkoutToStrava);
 
     $$('[data-role="reps"]').forEach(inp => inp.addEventListener('change', () => {
       const b = +inp.dataset.b, e = +inp.dataset.e;
@@ -319,7 +352,8 @@
     $$('[data-swap-id]', $('#sheet-swap-content')).forEach(el => el.addEventListener('click', () => {
       const newEx = window.CF_EXERCISES.find(x => x.id === el.dataset.swapId);
       const purpose = block.format === 'strength' ? 'strength' : 'metcon';
-      const load = window.CFGenerator.computeLoad(newEx, state.profile, purpose);
+      const autoreg = window.CFGenerator.computeAutoreg(state.history, state.profile);
+      const load = window.CFGenerator.computeLoad(newEx, state.profile, purpose, autoreg);
       const lvl = window.CFGenerator.levelTier(state.profile.level);
       block.exercises[eIdx] = {
         exerciseId: newEx.id, name: newEx.name, category: newEx.category, pattern: newEx.pattern,
@@ -400,6 +434,29 @@
     $('#share-preview').innerHTML = '';
     $('#share-preview').appendChild(canvas);
     $('#modal-share')._canvas = canvas;
+  }
+
+  async function exportCurrentWorkoutToStrava() {
+    const btn = $('#btn-strava-export');
+    const auth = window.CFStorage.getStravaAuth();
+    if (!window.CFStrava.isConnected(auth)) { toast('Nejdřív připoj Strava v Profilu'); return; }
+    const originalLabel = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = '⏳ Odesílám na Strava…';
+    try {
+      const { accessToken } = await window.CFStrava.getValidAccessToken(auth);
+      const result = await window.CFStrava.exportWorkout(auth.workerUrl, accessToken, state.currentWorkout);
+      state.currentWorkout.stravaActivityId = result.id;
+      const toStore = clone(state.currentWorkout);
+      delete toStore._saved;
+      state.history = window.CFStorage.saveWorkoutToHistory(toStore);
+      toast('Odesláno na Strava 🎉');
+      render();
+    } catch (e) {
+      toast('Export na Strava selhal: ' + (e.message || 'neznámá chyba'));
+      btn.disabled = false;
+      btn.textContent = originalLabel;
+    }
   }
 
   /* ------------------------------ HISTORY -------------------------------- */
@@ -622,6 +679,11 @@
         <div class="field"><label>Dostupný čas na trénink: <strong id="time-val">${p.timeAvailable} min</strong></label>
           <input type="range" id="f-time" min="15" max="90" step="5" value="${p.timeAvailable}" />
         </div>
+        <div class="field" style="margin-bottom:0;">
+          <label>Autoregulace zátěže</label>
+          ${segmented('autoregEnabled', [{ value: 'on', label: 'Zapnuto' }, { value: 'off', label: 'Vypnuto' }], p.autoregEnabled ? 'on' : 'off')}
+          <p class="field-hint">Dle RPE posledních tréninků jemně upraví % z 1RM nahoru/dolů.</p>
+        </div>
       </div>
     </div>
 
@@ -643,6 +705,11 @@
       </div>
     </div>
 
+    <div class="screen-section">
+      <p class="section-title">Strava</p>
+      <div class="card">${renderStravaSection()}</div>
+    </div>
+
     <button class="btn btn-primary" id="btn-save-profile">💾 Uložit profil</button>
     <button class="btn btn-secondary btn-block" id="btn-test-profile">🧪 Načíst testovací profil</button>
     `;
@@ -651,13 +718,31 @@
     bindProfileEvents();
   }
 
+  function renderStravaSection() {
+    const auth = window.CFStorage.getStravaAuth();
+    if (window.CFStrava.isConnected(auth)) {
+      return `
+        <p style="font-size:14.5px;margin-bottom:12px;">✅ Propojeno jako <strong>${escapeHtml(auth.athleteName || 'Strava atlet')}</strong></p>
+        <button class="btn btn-secondary" id="btn-strava-disconnect">Odpojit Strava</button>
+      `;
+    }
+    const workerUrl = (auth && auth.workerUrl) || '';
+    return `
+      <p class="field-hint" style="margin-bottom:12px;">Export tréninků jako aktivita na Stravu jde přes tvůj vlastní Cloudflare Worker proxy (viz <code>/strava-worker</code> v repu — tvůj client secret appka nikdy neuvidí).</p>
+      <div class="field"><label>URL Worker proxy</label>
+        <input type="text" id="f-strava-worker" placeholder="https://tvuj-worker.tvuj-ucet.workers.dev" value="${escapeHtml(workerUrl)}" />
+      </div>
+      <button class="btn btn-primary" id="btn-strava-connect">🟠 Připojit Strava</button>
+    `;
+  }
+
   function bindProfileEvents() {
     const p = state.profileDraft;
 
     $$('.segmented').forEach(seg => seg.addEventListener('click', e => {
       const btn = e.target.closest('button'); if (!btn) return;
       const field = seg.dataset.field;
-      p[field] = btn.dataset.value;
+      p[field] = field === 'autoregEnabled' ? btn.dataset.value === 'on' : btn.dataset.value;
       $$('button', seg).forEach(b => b.classList.toggle('active', b === btn));
     }));
 
@@ -698,6 +783,21 @@
       toast('Testovací profil načten a uložen');
       switchTab('today');
     });
+
+    const btnStravaConnect = $('#btn-strava-connect');
+    if (btnStravaConnect) btnStravaConnect.addEventListener('click', () => {
+      const workerUrl = ($('#f-strava-worker').value || '').trim().replace(/\/$/, '');
+      if (!workerUrl) { toast('Vyplň URL Worker proxy'); return; }
+      window.CFStorage.saveStravaAuth({ workerUrl });
+      window.location.href = window.CFStrava.connectUrl(workerUrl);
+    });
+
+    const btnStravaDisconnect = $('#btn-strava-disconnect');
+    if (btnStravaDisconnect) btnStravaDisconnect.addEventListener('click', () => {
+      window.CFStorage.clearStravaAuth();
+      toast('Strava odpojena');
+      render();
+    });
   }
 
   /* ------------------------------- THEME ---------------------------------- */
@@ -719,6 +819,22 @@
 
   function init() {
     applyTheme(window.CFStorage.getTheme());
+
+    const stravaCallback = window.CFStrava.consumeCallbackFragment();
+    if (stravaCallback) {
+      if (stravaCallback.ok) {
+        const existing = window.CFStorage.getStravaAuth() || {};
+        window.CFStorage.saveStravaAuth({
+          workerUrl: existing.workerUrl, refreshToken: stravaCallback.refreshToken,
+          athleteId: stravaCallback.athleteId, athleteName: stravaCallback.athleteName
+        });
+        state.tab = 'profile';
+        $$('.tab-item').forEach(b => b.classList.toggle('active', b.dataset.tab === 'profile'));
+        toast('Strava připojena 🎉');
+      } else {
+        toast('Připojení Strava selhalo: ' + stravaCallback.error);
+      }
+    }
 
     $$('.tab-item').forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
     $('#theme-toggle').addEventListener('click', cycleTheme);
